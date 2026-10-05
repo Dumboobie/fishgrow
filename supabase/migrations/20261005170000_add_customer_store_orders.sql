@@ -69,7 +69,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = pg_catalog, public, private
-as $
+as $func$
 declare
   item jsonb;
   product_row public.store_products%rowtype;
@@ -122,7 +122,7 @@ begin
   new.status := 'รอรับคำสั่งซื้อ';
   return new;
 end;
-$$;
+$func$;
 
 revoke execute on function private.validate_store_order() from public, anon, authenticated;
 drop trigger if exists store_orders_validate_before_insert on public.store_orders;

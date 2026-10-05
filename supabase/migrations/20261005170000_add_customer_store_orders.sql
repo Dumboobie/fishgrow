@@ -61,11 +61,15 @@ drop policy if exists store_orders_insert_owner on public.store_orders;
 create policy store_orders_insert_owner on public.store_orders
 for insert to authenticated with check ((select auth.uid()) = user_id);
 
-create or replace function public.validate_store_order()
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
+create or replace function private.validate_store_order()
 returns trigger
 language plpgsql
-set search_path = public
-as $$
+security definer
+set search_path = pg_catalog, public, private
+as $
 declare
   item jsonb;
   product_row public.store_products%rowtype;
@@ -94,14 +98,14 @@ begin
     if requested_quantity < 1 or requested_quantity > 100000 then
       raise exception 'Quantity must be a positive whole number';
     end if;
-    select * into product_row
-    from public.store_products
-    where product_id = requested_product_id and is_available = true;
+    update public.store_products
+    set stock = stock - requested_quantity, updated_at = now()
+    where product_id = requested_product_id
+      and is_available = true
+      and stock >= requested_quantity
+    returning * into product_row;
     if not found then
-      raise exception 'A selected product is no longer available';
-    end if;
-    if product_row.stock < requested_quantity then
-      raise exception 'Not enough stock for %', product_row.name;
+      raise exception 'Product is unavailable or stock is insufficient';
     end if;
     calculated_total := calculated_total + (product_row.price * requested_quantity);
     normalized_items := normalized_items || jsonb_build_array(jsonb_build_object(
@@ -120,7 +124,8 @@ begin
 end;
 $$;
 
+revoke execute on function private.validate_store_order() from public, anon, authenticated;
 drop trigger if exists store_orders_validate_before_insert on public.store_orders;
 create trigger store_orders_validate_before_insert
 before insert on public.store_orders
-for each row execute function public.validate_store_order();
+for each row execute function private.validate_store_order();

@@ -12,15 +12,19 @@ alter table public.store_products enable row level security;
 grant select on public.store_products to authenticated;
 grant insert, update, delete on public.store_products to authenticated;
 
+drop policy if exists store_products_user_select on public.store_products;
 create policy store_products_user_select on public.store_products
 for select to authenticated using (true);
+drop policy if exists store_products_admin_insert on public.store_products;
 create policy store_products_admin_insert on public.store_products
 for insert to authenticated
 with check (exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
+drop policy if exists store_products_admin_update on public.store_products;
 create policy store_products_admin_update on public.store_products
 for update to authenticated
 using (exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'))
 with check (exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
+drop policy if exists store_products_admin_delete on public.store_products;
 create policy store_products_admin_delete on public.store_products
 for delete to authenticated
 using (exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
@@ -47,11 +51,13 @@ alter table public.store_orders enable row level security;
 grant select on public.store_orders to authenticated;
 grant insert (user_id, customer_name, phone, delivery_address, note, items) on public.store_orders to authenticated;
 
+drop policy if exists store_orders_select_owner_or_admin on public.store_orders;
 create policy store_orders_select_owner_or_admin on public.store_orders
 for select to authenticated using (
   (select auth.uid()) = user_id
   or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin')
 );
+drop policy if exists store_orders_insert_owner on public.store_orders;
 create policy store_orders_insert_owner on public.store_orders
 for insert to authenticated with check ((select auth.uid()) = user_id);
 

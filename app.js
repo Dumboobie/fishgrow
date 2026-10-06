@@ -45,7 +45,23 @@ async function navigateUser(page){S.page='user-'+page;try{await loadStorefront()
 function userLayout(c){var links=[['shop','▣','ร้านค้า'],['orders','🛒','คำสั่งซื้อของฉัน'],['account','♙','บัญชีของฉัน']];document.getElementById('app').innerHTML='<div class="app user-app"><aside class="sidebar"><div class="brand"><div class="brand-mark">
   <img src="assets/logo.png" alt="FISHGROW">
 </div><div><h1>FISHGROW</h1><small>SMART FEED STORE</small></div></div><div class="nav"><div style="font-size:11px;opacity:.5;padding:8px">เมนูผู้ใช้</div>'+links.map(function(m){return '<button class="'+((S.page==='user-'+m[0]||(m[0]==='shop'&&S.page==='user'))?'active':'')+'" data-page="'+m[0]+'" onclick="navigateUser(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+(m[0]==='shop'&&cartCount()?' ('+cartCount()+')':'')+'</button>'}).join('')+'</div></aside><main class="main"><div class="topbar"><span>FISHGROW / ร้านค้า</span><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="toast" class="toast"></div></div>'}
-function initializeAuth(){if(!window.fishgrowSupabase){renderAuth('','ไม่พบไฟล์ Supabase client');return}window.fishgrowSupabase.auth.onAuthStateChange(function(event){if(event==='SIGNED_OUT'){currentUser=null;AUTH_STATE.profile=null;remoteStateLoaded=false;S.page='dashboard';renderAuth()}else if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&!currentUser){setTimeout(bootstrapAuth,0)}});bootstrapAuth()}
+function showStartupError(error){
+  var app=document.getElementById('app');
+  if(!app)return;
+  app.innerHTML='<main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#F5F4ED;color:#26343b;font-family:Arial,sans-serif"><section style="max-width:560px;background:#fff;padding:28px;border-radius:16px;box-shadow:0 8px 28px #263b4a14"><h1 style="margin-top:0">FISHGROW</h1><h2>เปิดหน้าเว็บไม่สำเร็จ</h2><p>ระบบโหลดข้อมูลเริ่มต้นไม่ได้ กรุณารีเฟรชหน้าเว็บ หรือติดต่อผู้ดูแล</p><details><summary>รายละเอียดสำหรับตรวจสอบ</summary><pre style="white-space:pre-wrap">'+esc(error&&error.message||String(error||'ไม่ทราบสาเหตุ'))+'</pre></details></section></main>';
+}
+function initializeAuth(){
+  try{
+    if(!window.fishgrowSupabase){renderAuth('','ไม่พบไฟล์ Supabase client');return}
+    window.fishgrowSupabase.auth.onAuthStateChange(function(event){
+      if(event==='SIGNED_OUT'){currentUser=null;AUTH_STATE.profile=null;remoteStateLoaded=false;S.page='dashboard';renderAuth()}
+      else if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&!currentUser){setTimeout(bootstrapAuth,0)}
+    });
+    bootstrapAuth().catch(function(error){showStartupError(error)});
+  }catch(error){showStartupError(error)}
+}
+window.addEventListener('error',function(event){if(!document.getElementById('app')?.innerHTML.trim())showStartupError(event.error||event.message)});
+window.addEventListener('unhandledrejection',function(event){showStartupError(event.reason)});
 
 function render(){load();if(!currentUser||!AUTH_STATE.profile)return renderAuth();var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports};if(AUTH_STATE.profile.role!=='admin')return layout(userPage());if(!p[S.page])S.page='dashboard';layout(p[S.page]())}
 initializeAuth();

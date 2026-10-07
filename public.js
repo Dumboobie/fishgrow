@@ -42,7 +42,7 @@
     heroImageUrl: '',
     storyImageUrl: '',
     videoPosterUrl: '',
-    youtubeUrl: '',
+    youtubeUrl: 'https://youtu.be/tAJd5qydC30',
     videoUrl: '',
     gallery: [
       { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },

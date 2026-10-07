@@ -246,7 +246,7 @@
       '<div class="fg-hero-overlay"></div>' +
       '<div class="fg-container fg-hero-inner">' +
       '<div class="fg-hero-content">' +
-      '<span class="fg-eyebrow">Sustainability First</span>' +
+      '' +
       '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
       '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
       '<div class="fg-hero-actions">' +

@@ -478,3 +478,18 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
   .fg-header .fg-logo-image{width:46px;height:46px}
   .fg-header .fg-wordmark{font-size:31px}
 }
+
+
+/* Header logo size adjustment */
+.fg-header .fg-logo-image{
+  width:70px;
+  height:70px;
+}
+.fg-header .fg-wordmark{
+  font-size:32px;
+  line-height:1;
+}
+@media(max-width:720px){
+  .fg-header .fg-logo-image{width:70px;height:70px}
+  .fg-header .fg-wordmark{font-size:32px}
+}

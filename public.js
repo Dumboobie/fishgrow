@@ -366,14 +366,14 @@
     result.innerHTML = '<p class="fg-muted">กำลังตรวจสอบ...</p>';
     const { data, error } = await supabase
       .from('store_orders')
-      .select('id,status,created_at,total_amount')
+      .select('id,status,created_at,total_amount,payment_status,tracking_number')
       .eq('id', Number(String(code).replace(/\D/g, '')))
       .maybeSingle();
     if (error || !data) {
       result.innerHTML = '<p class="fg-error">ไม่พบคำสั่งซื้อ หรือระบบไม่อนุญาตให้ตรวจสอบรายการนี้ กรุณาเข้าสู่ระบบ</p>';
       return;
     }
-    result.innerHTML = '<div class="fg-timeline"><div class="done">✓ รับคำสั่งซื้อ</div><div class="' + (data.status !== 'รอรับคำสั่งซื้อ' ? 'done' : '') + '">02 ยืนยันการชำระเงิน</div><div class="' + (['กำลังจัดเตรียม','จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">03 กำลังเตรียมสินค้า</div><div class="' + (['จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">04 กำลังจัดส่ง</div><div class="' + (data.status === 'เสร็จสิ้น' ? 'done' : '') + '">05 จัดส่งสำเร็จ</div></div><p><b>สถานะปัจจุบัน:</b> ' + esc(data.status) + '</p>';
+    result.innerHTML = '<div class="fg-timeline"><div class="done">✓ รับคำสั่งซื้อ</div><div class="' + (data.payment_status === 'verified' || data.status !== 'รอรับคำสั่งซื้อ' ? 'done' : '') + '">02 ยืนยันการชำระเงิน</div><div class="' + (['กำลังจัดเตรียม','จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">03 กำลังเตรียมสินค้า</div><div class="' + (['จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">04 กำลังจัดส่ง</div><div class="' + (data.status === 'เสร็จสิ้น' ? 'done' : '') + '">05 จัดส่งสำเร็จ</div></div><p><b>สถานะปัจจุบัน:</b> ' + esc(data.status) + '</p>' + (data.tracking_number ? '<p><b>เลข Tracking:</b> ' + esc(data.tracking_number) + '</p>' : '') + '<p><b>การชำระเงิน:</b> ' + esc(data.payment_status || 'pending') + '</p>';
   }
 
   async function submitContact(form) {

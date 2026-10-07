@@ -40,7 +40,7 @@
   // Keep these paths local so Vercel serves the exact files shipped with the site.
   const ABOUT_MEDIA = {
     heroImageUrl: 'pic6.jpg?v=1',
-    storyImageUrl: 'assets/pic7.jpg?v=1',
+    storyImageUrl: '',
     videoPosterUrl: '',
     youtubeUrl: '',
     heroVideoUrl: 'assets/hero-bg.mp4',
@@ -410,7 +410,7 @@
     ).join('');
 
     return '<main class="fg-about-page">' +
-      '<section class="fg-about-hero"><div class="fg-container fg-about-hero-grid"><div class="fg-about-hero-copy"><span class="fg-kicker">ABOUT FISHGROW</span><h1>จากปัญหาท้องถิ่น<br><span>สู่คุณค่าใหม่ที่ยั่งยืน</span></h1><p>FISHGROW มองหาแนวทางเพิ่มมูลค่าวัตถุดิบในพื้นที่ เพื่อพัฒนาอาหารปลากะพงขาวและสนับสนุนการเพาะเลี้ยงที่รับผิดชอบ</p></div><div class="fg-about-hero-media">' + aboutImage(ABOUT_MEDIA.heroImageUrl, 'ภาพแนะนำ FISHGROW จากพื้นที่จริง') + '</div></div></section>' +
+      '<section class="fg-about-hero"><div class="fg-container fg-about-hero-grid"><div class="fg-about-hero-copy"><span class="fg-kicker">ABOUT FISHGROW</span><h1>จากปัญหาท้องถิ่น<br><span>สู่คุณค่าใหม่ที่ยั่งยืน</span></h1><p>FISHGROW มองหาแนวทางเพิ่มมูลค่าวัตถุดิบในพื้นที่ เพื่อพัฒนาอาหารปลากะพงขาวและสนับสนุนเกษตรกร</p></div><div class="fg-about-hero-media">' + aboutImage(ABOUT_MEDIA.heroImageUrl, 'ภาพแนะนำ FISHGROW จากพื้นที่จริง') + '</div></div></section>' +
       '<section class="fg-section fg-about-video-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">WATCH OUR STORY</span><h2>FISHGROW</h2></div><div class="fg-about-video-card">' + aboutVideo() + '<div class="fg-video-caption"><div><span class="fg-chip">FISHGROW STORY</span><h3>เรื่องราวของ FISHGROW</h3></div></div></div></div></section>' +
       '<section class="fg-section fg-soft"><div class="fg-container fg-about-story-grid"><div class="fg-about-story-media">' + aboutImage(ABOUT_MEDIA.storyImageUrl, 'ภาพเรื่องราว FISHGROW จากพื้นที่จริง') + '</div><div class="fg-story fg-about-story-copy"><span class="fg-kicker">เรื่องราวของเรา</span><h2>จุดเริ่มต้นจากวิกฤตสิ่งแวดล้อม</h2><p>แนวคิดของ FISHGROW เริ่มจากการมองเห็นโอกาสในการใช้ปลาหมอคางดำที่จับตามมาตรการที่ถูกต้อง ร่วมกับวัตถุดิบท้องถิ่น มาแปรรูปและพัฒนาเป็นอาหารปลากะพงขาว</p><div class="fg-story-flow"><span>วัตถุดิบในพื้นที่</span><i>→</i><span>แปรรูปอย่างเหมาะสม</span><i>→</i><span>อาหารปลากะพงขาว</span></div></div></div></section>' +
       '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">OUR JOURNEY</span><h2>จากปัญหาสู่การผลิตอาหารปลา</h2><p>ลำดับเรื่องราวที่สื่อสารได้ชัดเจน โดยไม่แทนที่หลักฐานจากกระบวนการจริง</p></div><div class="fg-about-timeline"><div><span>01</span><div><b>ปัญหาปลาหมอคางดำ</b><small>ทรัพยากรที่ต้องจัดการตามมาตรการและข้อมูลจากหน่วยงานที่เกี่ยวข้อง</small></div></div><div><span>02</span><div><b>คัดเลือกวัตถุดิบ</b><small>เตรียมวัตถุดิบที่เหมาะสมสำหรับการแปรรูปและตรวจสอบย้อนกลับ</small></div></div><div><span>03</span><div><b>แปรรูปและพัฒนาสูตร</b><small>ลดความชื้น บด ผสม และควบคุมคุณภาพตามกระบวนการที่กำหนด</small></div></div><div><span>04</span><div><b>ผลิตอาหารปลากะพงขาว</b><small>อัดเม็ด อบ และตรวจคุณภาพก่อนนำไปใช้งาน</small></div></div><div><span>05</span><div><b>สร้างคุณค่าอย่างยั่งยืน</b><small>สนับสนุนเกษตรกร ชุมชน และการใช้ทรัพยากรอย่างรับผิดชอบ</small></div></div></div></div></section>' +

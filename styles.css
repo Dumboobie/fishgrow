@@ -590,3 +590,32 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
     font-size:36px;
   }
 }
+
+
+/* About hero image: let the frame follow pic6's natural landscape ratio */
+.fg-about-hero-media{
+  height:auto;
+  min-height:0;
+  aspect-ratio:auto;
+  align-self:center;
+}
+.fg-about-hero-media img{
+  width:100%;
+  height:auto;
+  min-height:0;
+  object-fit:contain;
+  object-position:center;
+}
+@media(max-width:1000px){
+  .fg-about-hero-media{
+    min-height:0;
+  }
+  .fg-about-hero-media img{
+    height:auto;
+  }
+}
+@media(max-width:720px){
+  .fg-about-hero-media{
+    min-height:0;
+  }
+}

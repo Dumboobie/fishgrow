@@ -36,7 +36,17 @@ function layout(c){if(!currentUser||!AUTH_STATE.profile)return renderAuth();if(A
 // orderStatusClass: แปลงสถานะคำสั่งซื้อเป็น CSS class
 function orderStatusClass(status){return status==='รอชำระ'||status==='รอรับคำสั่งซื้อ'||status==='pending'?'warn':status==='ยกเลิก'||status==='cancelled'?'muted':status==='กำลังจัดเตรียม'||status==='จัดส่งแล้ว'||status==='processing'||status==='shipped'?'info':''}
 // ordersTable: สร้างตารางคำสั่งซื้อ และเปิดให้ Admin เปลี่ยนสถานะได้
-function ordersTable(rows,canUpdate){if(!rows.length)return '<div class="empty-state">ยังไม่มีคำสั่งซื้อ</div>';return '<div class="table-wrap"><table><thead><tr><th>เลขที่</th><th>ลูกค้า</th><th>วันที่</th><th>ยอดรวม</th><th>สถานะ</th></tr></thead><tbody>'+rows.map(function(o){var status=esc(o.status||'รอรับคำสั่งซื้อ');var state=canUpdate&&o.storeOrderId?'<select class="status-select" aria-label="เปลี่ยนสถานะ '+esc(o.id)+'" onchange="updateStoreOrderStatus('+Number(o.storeOrderId)+',this.value)">'+(ORDER_STATUSES.indexOf(o.status)<0?'<option selected>'+status+'</option>':'')+ORDER_STATUSES.map(function(x){return '<option value="'+x+'" '+(o.status===x?'selected':'')+'>'+x+'</option>'}).join('')+'</select>':'<span class="badge '+orderStatusClass(o.status)+'">'+status+'</span>';return '<tr><td><b>'+esc(o.id)+'</b></td><td>'+esc(o.customer)+'</td><td>'+esc(o.date)+'</td><td>฿'+money(o.amount)+'</td><td>'+state+'</td></tr>'}).join('')+'</tbody></table></div>'}
+function ordersTable(rows,canUpdate){
+  if(!rows.length)return '<div class="empty-state">ยังไม่มีคำสั่งซื้อ</div>';
+  return '<div class="table-wrap"><table><thead><tr><th>เลขที่</th><th>ลูกค้า</th><th>วันที่</th><th>ยอดรวม</th><th>ชำระเงิน</th><th>สถานะ</th><th>Tracking</th></tr></thead><tbody>'+
+    rows.map(function(o){
+      var status=esc(o.status||'รอรับคำสั่งซื้อ');
+      var state=canUpdate&&o.storeOrderId?'<select class="status-select" aria-label="เปลี่ยนสถานะ '+esc(o.id)+'" onchange="updateStoreOrderStatus('+Number(o.storeOrderId)+',this.value)">'+(ORDER_STATUSES.indexOf(o.status)<0?'<option selected>'+status+'</option>':'')+ORDER_STATUSES.map(function(x){return '<option value="'+x+'" '+(o.status===x?'selected':'')+'>'+x+'</option>'}).join('')+'</select>':'<span class="badge '+orderStatusClass(o.status)+'">'+status+'</span>';
+      var pay=canUpdate&&o.storeOrderId?'<select class="status-select" onchange="updateStorePaymentStatus('+Number(o.storeOrderId)+',this.value)"><option value="pending" '+(o.paymentStatus==='pending'?'selected':'')+'>รอตรวจสอบ</option><option value="submitted" '+(o.paymentStatus==='submitted'?'selected':'')+'>ส่งหลักฐานแล้ว</option><option value="verified" '+(o.paymentStatus==='verified'?'selected':'')+'>ยืนยันแล้ว</option><option value="rejected" '+(o.paymentStatus==='rejected'?'selected':'')+'>ไม่ผ่าน</option></select>'+(o.proof?'<button class="btn light" onclick="viewPaymentProof(\''+esc(o.proof).replace(/'/g,"\\'")+'\')">ดูหลักฐาน</button>':''):'<span class="badge">'+esc(o.paymentStatus||'pending')+'</span>';
+      var tracking=canUpdate&&o.storeOrderId?'<button class="btn light" onclick="updateStoreTracking('+Number(o.storeOrderId)+')">'+esc(o.tracking||'เพิ่มเลข')</button>':'<span>'+esc(o.tracking||'—')+'</span>';
+      return '<tr><td><b>'+esc(o.id)+'</b></td><td>'+esc(o.customer)+'</td><td>'+esc(o.date)+'</td><td>฿'+money(o.amount)+'</td><td>'+pay+'</td><td>'+state+'</td><td>'+tracking+'</td></tr>'
+    }).join('')+'</tbody></table></div>';
+}
 
 // dashboard: สร้างหน้า Dashboard
 function dashboard(){var sales=recognizedIncome(),pending=pendingOrderValue(),exp=S.expenses.reduce(function(a,o){return a+o.amount},0),stk=S.products.reduce(function(a,o){return a+o.stock},0);return head('ภาพรวมธุรกิจ','ติดตามยอดขาย ต้นทุน สต็อก และการผลิตของ FISHGROW')+'<div class="grid kpi-grid"><div class="card kpi"><span class="kpi-icon">฿</span><div class="label">รายรับที่ยืนยันแล้ว</div><div class="value">฿'+money(sales)+'</div><div class="sub">ยอดรอรับคำสั่งซื้อ ฿'+money(pending)+'</div></div><div class="card kpi"><span class="kpi-icon">📦</span><div class="label">สินค้าคงเหลือ</div><div class="value">'+money(stk)+' kg</div><div class="sub">ราคาเป้าหมาย ฿40/kg</div></div><div class="card kpi"><span class="kpi-icon">🧾</span><div class="label">ค่าใช้จ่าย</div><div class="value">฿'+money(exp)+'</div><div class="sub">รายการที่บันทึก</div></div><div class="card kpi"><span class="kpi-icon">📈</span><div class="label">กำไรเบื้องต้น</div><div class="value">฿'+money(sales-exp)+'</div><div class="sub">'+(sales?Math.round((sales-exp)/sales*100):0)+'%</div></div></div><div class="grid two" style="margin-top:16px"><div class="card"><div class="section-title"><h3>ยอดขาย 7 วันล่าสุด</h3><span class="muted">บาท</span></div><div class="mini-chart">'+[40,55,48,68,57,82,72].map(function(v,i){return '<span style="height:'+v+'%"><em>'+['29','30','1','2','3','4','5'][i]+'</em></span>'}).join('')+'</div></div><div class="card"><div class="section-title"><h3>สต็อกวัตถุดิบ</h3><span class="muted">kg</span></div><div class="bar-list">'+S.materials.map(function(m){return '<div class="bar-row"><span>'+esc(m.name)+'</span><div class="bar"><i style="width:'+Math.min(m.stock/900*100,100)+'%"></i></div><b>'+money(m.stock)+'</b></div>'}).join('')+'</div></div></div><div class="grid two" style="margin-top:16px"><div class="card"><div class="section-title"><h3>คำสั่งซื้อล่าสุด</h3><button class="btn light" onclick="go(\'orders\')">ดูทั้งหมด</button></div>'+ordersTable(businessOrders())+'</div><div class="card"><div class="section-title"><h3>แนวคิด FISHGROW</h3></div><p style="line-height:1.8;font-size:13px">นำปลาหมอคางดำที่จับได้ตามมาตรการที่ถูกต้องมาเพิ่มมูลค่าเป็นวัตถุดิบอาหารปลากะพงขาว พร้อมบริหารต้นทุน สต็อก และการขายในระบบเดียว</p><div style="background:#f1f4ed;padding:14px;border-radius:12px;color:#4D632A">♻️ เปลี่ยนวิกฤตเอเลียนสปีชีส์ให้เป็นโอกาส</div></div></div>'}
@@ -102,8 +112,10 @@ function customers() {
 // orders: สร้างหน้ารวมคำสั่งซื้อออนไลน์และคำสั่งซื้อเดิม
 function orders() {
   var webRows=ADMIN_WEB_ORDERS.map(function(o) {
-    return {id:o.order_code,storeOrderId:o.id,customer:o.customer_name,date:new Date(o.created_at).toLocaleDateString('th-TH'),amount:Number(o.total_amount),status:o.status}
-  });return head('คำสั่งซื้อ','ติดตามออเดอร์จากหน้า User และรายการที่บันทึกในระบบ','<div class="session-actions"><button class="btn light" onclick="refreshAdminOrders()">↻ รีเฟรช</button><button class="btn green" onclick="orderModal()">+ สร้างคำสั่งซื้อ</button></div>')+'<div class="card"><h3>คำสั่งซื้อออนไลน์</h3>'+ordersTable(webRows,true)+'</div><div class="card" style="margin-top:16px"><h3>รายการเดิมในระบบ Admin</h3>'+ordersTable(S.orders,false)+'</div>'
+    return {id:o.order_code,storeOrderId:o.id,customer:o.customer_name,date:new Date(o.created_at).toLocaleDateString('th-TH'),amount:Number(o.total_amount),status:o.status,paymentStatus:o.payment_status,paymentMethod:o.payment_method,proof:o.payment_proof_path,tracking:o.tracking_number}
+  });
+  return head('คำสั่งซื้อ','ติดตามออเดอร์จากหน้า User และรายการที่บันทึกในระบบ','<div class="session-actions"><button class="btn light" onclick="refreshAdminOrders()">↻ รีเฟรช</button><button class="btn green" onclick="orderModal()">+ สร้างคำสั่งซื้อ</button></div>')+
+    '<div class="card"><h3>คำสั่งซื้อออนไลน์</h3>'+ordersTable(webRows,true)+'</div><div class="card" style="margin-top:16px"><h3>รายการเดิมในระบบ Admin</h3>'+ordersTable(S.orders,false)+'</div>'
 }
 
 // updateStoreOrderStatus: อัปเดตสถานะคำสั่งซื้อออนไลน์ใน Supabase
@@ -281,7 +293,7 @@ async function updateProfile() {
 
 // loadAdminWebOrders: โหลดคำสั่งซื้อออนไลน์สำหรับ Admin
 async function loadAdminWebOrders() {
-    var r=await window.fishgrowSupabase.from('store_orders').select('id,customer_name,status,total_amount,created_at,items').order('created_at',{ascending:false}).limit(100);if(r.error) {
+    var r=await window.fishgrowSupabase.from('store_orders').select('id,customer_name,status,total_amount,created_at,items,payment_status,payment_method,payment_proof_path,tracking_number').order('created_at',{ascending:false}).limit(100);if(r.error) {
       console.warn('โหลดคำสั่งซื้อออนไลน์ไม่สำเร็จ',r.error);ADMIN_WEB_ORDERS=[];return
     }
     ADMIN_WEB_ORDERS=(r.data||[]).map(function(o) {
@@ -289,6 +301,30 @@ async function loadAdminWebOrders() {
     })
   }
 
+// updateStorePaymentStatus: Admin ตรวจสอบสถานะการชำระเงิน
+async function updateStorePaymentStatus(orderId,status) {
+  if(['pending','submitted','verified','rejected'].indexOf(status)<0)return;
+  var r=await window.fishgrowSupabase.from('store_orders').update({payment_status:status}).eq('id',Number(orderId)).select('id,payment_status').maybeSingle();
+  if(r.error||!r.data){toast('อัปเดตสถานะการชำระเงินไม่สำเร็จ');return}
+  await loadAdminWebOrders();render();toast('อัปเดตสถานะการชำระเงินแล้ว')
+}
+
+// viewPaymentProof: สร้างลิงก์ชั่วคราวสำหรับ Admin ดูหลักฐาน
+async function viewPaymentProof(path) {
+  var r=await window.fishgrowSupabase.storage.from('payment-proofs').createSignedUrl(path,300);
+  if(r.error||!r.data){toast('เปิดหลักฐานไม่สำเร็จ');return}
+  window.open(r.data.signedUrl,'_blank','noopener,noreferrer')
+}
+
+// updateStoreTracking: Admin บันทึกเลขติดตามพัสดุ
+async function updateStoreTracking(orderId) {
+  var tracking=window.prompt('กรอกเลข Tracking ของคำสั่งซื้อ');
+  if(tracking===null)return;
+  tracking=tracking.trim();
+  var r=await window.fishgrowSupabase.from('store_orders').update({tracking_number:tracking||null}).eq('id',Number(orderId)).select('id,tracking_number').maybeSingle();
+  if(r.error||!r.data){toast('บันทึก Tracking ไม่สำเร็จ');return}
+  await loadAdminWebOrders();render();toast('บันทึก Tracking แล้ว')
+}
 // refreshAdminOrders: รีเฟรชคำสั่งซื้อออนไลน์
 async function refreshAdminOrders() {
     await loadAdminWebOrders();render()

@@ -71,19 +71,62 @@
   }
 
   async function loadProducts() {
-    if (!supabase) return;
-    const authResult = await supabase.auth.getUser();
-    if (!authResult.error) state.user = authResult.data.user || null;
-    const [p, s, a, r] = await Promise.all([
-      supabase.from('store_products').select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').eq('is_available', true).order('product_id'),
+    if (!supabase) {
+      console.error('FISHGROW: Supabase client is not available.');
+      return;
+    }
+
+    try {
+      const authResult = await supabase.auth.getUser();
+      if (!authResult.error) state.user = authResult.data.user || null;
+    } catch (error) {
+      console.warn('FISHGROW: auth check failed, continuing as public visitor.', error);
+    }
+
+    // Load each public resource independently so a non-critical query
+    // cannot prevent the product catalog from appearing on the Home page.
+    const productResult = await supabase
+      .from('store_products')
+      .select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note')
+      .eq('is_available', true)
+      .order('product_id');
+
+    if (productResult.error) {
+      console.error('FISHGROW: failed to load products:', productResult.error);
+      // Retry with only the fields required to render product cards.
+      const fallback = await supabase
+        .from('store_products')
+        .select('product_id,sku,name,stock,price,is_available,image_url')
+        .eq('is_available', true)
+        .order('product_id');
+
+      if (!fallback.error) {
+        state.products = fallback.data || [];
+      } else {
+        console.error('FISHGROW: product fallback also failed:', fallback.error);
+        state.products = [];
+      }
+    } else {
+      state.products = productResult.data || [];
+    }
+
+    const [settingsResult, articlesResult, rulesResult] = await Promise.allSettled([
       supabase.from('store_settings').select('store_name,promptpay_name,promptpay_number,bank_name,bank_account_name,bank_account_number,cod_enabled,shipping_note,contact_phone,contact_line,contact_email').eq('id', 1).maybeSingle(),
       supabase.from('knowledge_articles').select('id,slug,title,excerpt,content,category,cover_image_url,published_at').eq('is_published', true).order('published_at', { ascending: false }),
       supabase.from('store_product_recommendation_rules').select('product_id,fish_type,stage,goal,farm_size,priority,reason').eq('is_active', true).order('priority', { ascending: false })
     ]);
-    if (!p.error) state.products = p.data || [];
-    if (!s.error) state.settings = s.data || null;
-    if (!a.error) state.articles = a.data || [];
-    if (!r.error) state.recommendationRules = r.data || [];
+
+    if (settingsResult.status === 'fulfilled' && !settingsResult.value.error) {
+      state.settings = settingsResult.value.data || null;
+    }
+    if (articlesResult.status === 'fulfilled' && !articlesResult.value.error) {
+      state.articles = articlesResult.value.data || [];
+    }
+    if (rulesResult.status === 'fulfilled' && !rulesResult.value.error) {
+      state.recommendationRules = rulesResult.value.data || [];
+    }
+
+    console.info('FISHGROW: loaded products:', state.products.length);
   }
 
   function navItem(page, label) {

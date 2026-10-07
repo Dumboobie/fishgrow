@@ -254,9 +254,9 @@
       '<a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a>' +
       '</div>' +
       '<div class="fg-hero-tags">' +
-      '<span>♻️ Local Resource</span>' +
-      '<span>🐟 Aquaculture Feed</span>' +
-      '<span>🌱 Sustainability</span>' +
+      '<span>Local Resource</span>' +
+      '<span>Aquaculture Feed</span>' +
+      '<span>Sustainability</span>' +
       '</div>' +
       '</div>' +
       '</div>' +

@@ -524,3 +524,44 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
   color: var(--fg-navy);
   transform: translateY(-1px);
 }
+
+
+/* Storage tips: keep the heading and all 3 tips on one aligned row */
+.fg-storage{
+  display:grid;
+  grid-template-columns:1.15fr repeat(3,1fr);
+  align-items:center;
+  justify-content:initial;
+  gap:24px;
+}
+.fg-storage h2{
+  margin:0;
+  white-space:nowrap;
+}
+.fg-storage span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  white-space:nowrap;
+}
+@media(max-width:900px){
+  .fg-storage{
+    grid-template-columns:1fr 1fr;
+  }
+  .fg-storage h2{
+    grid-column:1/-1;
+    text-align:center;
+  }
+}
+@media(max-width:700px){
+  .fg-storage{
+    grid-template-columns:1fr;
+  }
+  .fg-storage h2{
+    grid-column:auto;
+  }
+  .fg-storage span{
+    justify-content:flex-start;
+  }
+}

@@ -43,7 +43,7 @@
     storyImageUrl: '',
     videoPosterUrl: '',
     youtubeUrl: '',
-    videoUrl: 'https://file.kiwi/4654542c#5aTCJdMzWwPd9KvzAa6dMw',
+    videoUrl: '/assets/video1.mp4',
     gallery: [
       { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },
       { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '' },

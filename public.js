@@ -35,6 +35,40 @@
   const cartCount = () => Object.values(state.cart).reduce((sum, n) => sum + Number(n || 0), 0);
   const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * Number(state.cart[p.product_id] || 0), 0);
 
+  // Media slots intentionally start empty until approved FISHGROW assets are available.
+  // Add real URLs here later, or move this object to a CMS-backed settings table.
+  const ABOUT_MEDIA = {
+    heroImageUrl: '',
+    storyImageUrl: '',
+    videoPosterUrl: '',
+    youtubeUrl: '',
+    videoUrl: '',
+    gallery: [
+      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },
+      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '' },
+      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: '' },
+      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: '' },
+      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: '' }
+    ]
+  };
+
+  const aboutMediaPlaceholder = (title, detail) =>
+    '<div class="fg-media-placeholder" role="img" aria-label="' + esc(title) + '"><span class="fg-media-placeholder-icon">◌</span><strong>' + esc(title) + '</strong><small>' + esc(detail) + '</small><em>MEDIA PLACEHOLDER · เพิ่ม asset จริงภายหลัง</em></div>';
+
+  const aboutImage = (url, alt, className) => url
+    ? '<img class="' + (className || '') + '" src="' + esc(url) + '" alt="' + esc(alt) + '" loading="lazy">'
+    : aboutMediaPlaceholder('ยังไม่มีภาพจริง', alt);
+
+  function aboutVideo() {
+    if (ABOUT_MEDIA.youtubeUrl) {
+      return '<div class="fg-video-frame"><iframe src="' + esc(ABOUT_MEDIA.youtubeUrl) + '" title="วิดีโอแนะนำ FISHGROW" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+    }
+    if (ABOUT_MEDIA.videoUrl) {
+      return '<div class="fg-video-frame"><video controls preload="metadata"' + (ABOUT_MEDIA.videoPosterUrl ? ' poster="' + esc(ABOUT_MEDIA.videoPosterUrl) + '"' : '') + '><source src="' + esc(ABOUT_MEDIA.videoUrl) + '" type="video/mp4">เบราว์เซอร์นี้ไม่รองรับวิดีโอ MP4</video></div>';
+    }
+    return '<div class="fg-video-frame fg-video-placeholder" data-about-video>' + aboutMediaPlaceholder('วิดีโอแนะนำ FISHGROW', 'รองรับ YouTube หรือ MP4 เมื่อมีวิดีโอจริง') + '<button class="fg-media-play" type="button" data-media-play aria-label="เปิดวิดีโอแนะนำ FISHGROW">▶</button></div>';
+  }
+
   async function loadProducts() {
     if (!supabase) return;
     const [p, s, a, r] = await Promise.all([
@@ -252,7 +286,18 @@
   }
 
   function about() {
-    return '<section class="fg-about-hero"><div class="fg-container"><span class="fg-kicker">ABOUT FISHGROW</span><h1>จากปัญหาท้องถิ่น<br><span>สู่คุณค่าใหม่ที่ยั่งยืน</span></h1><p>พลิกวิกฤตปลาหมอคางดำ ให้กลายเป็นแหล่งทรัพยากรคุณภาพ เพื่อการเพาะเลี้ยงสัตว์น้ำและชุมชน</p></div></section><section class="fg-section"><div class="fg-container"><div class="fg-story"><span class="fg-kicker">เรื่องราวของเรา</span><h2>จุดเริ่มต้นจากวิกฤตสิ่งแวดล้อม</h2><p>FishGrow มองหาวิธีนำปลาหมอคางดำและวัตถุดิบท้องถิ่นมาใช้ประโยชน์อย่างเหมาะสม ผ่านการแปรรูปและพัฒนาเป็นอาหารปลา</p><div class="fg-story-flow"><span>ปลาหมอคางดำ</span><i>→</i><span>แปรรูป</span><i>→</i><span>วัตถุดิบอาหารปลา</span><i>→</i><span>FishGrow</span><i>→</i><span>สร้างคุณค่า</span></div></div></div></section><section class="fg-section fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Sustainability Journey</span><h2>วงจรความยั่งยืน</h2></div><div class="fg-process fg-process-wide"><div><span>01</span><b>ทรัพยากรท้องถิ่น</b><small>ปลาหมอคางดำและวัตถุดิบในพื้นที่</small></div><div><span>02</span><b>การแปรรูป</b><small>คัดเลือกและเตรียมวัตถุดิบ</small></div><div><span>03</span><b>อาหารปลา</b><small>พัฒนาเป็นผลิตภัณฑ์</small></div><div><span>04</span><b>สร้างคุณค่า</b><small>เพิ่มมูลค่าทรัพยากร</small></div><div><span>05</span><b>ชุมชนเติบโต</b><small>สร้างโอกาสทางเศรษฐกิจในพื้นที่</small></div></div></div></section>';
+    const gallery = ABOUT_MEDIA.gallery.map((item, index) =>
+      '<figure class="fg-about-gallery-card"><div class="fg-about-gallery-media">' + aboutImage(item.url, item.label + ' ของ FISHGROW') + '<span class="fg-gallery-index">0' + (index + 1) + '</span></div><figcaption><strong>' + esc(item.label) + '</strong><small>' + esc(item.detail) + '</small></figcaption></figure>'
+    ).join('');
+
+    return '<main class="fg-about-page">' +
+      '<section class="fg-about-hero"><div class="fg-container fg-about-hero-grid"><div class="fg-about-hero-copy"><span class="fg-kicker">ABOUT FISHGROW</span><h1>จากปัญหาท้องถิ่น<br><span>สู่คุณค่าใหม่ที่ยั่งยืน</span></h1><p>FISHGROW มองหาแนวทางเพิ่มมูลค่าวัตถุดิบในพื้นที่ เพื่อพัฒนาอาหารปลากะพงขาวและสนับสนุนการเพาะเลี้ยงที่รับผิดชอบ</p><div class="fg-about-hero-note"><b>พื้นที่สำหรับสื่อแนะนำแบรนด์</b><span>ยังไม่มีภาพจริงใน repository · รองรับการเพิ่ม asset จริงภายหลัง</span></div></div><div class="fg-about-hero-media">' + aboutImage(ABOUT_MEDIA.heroImageUrl, 'ภาพแนะนำ FISHGROW จากพื้นที่จริง') + '</div></div></section>' +
+      '<section class="fg-section fg-about-video-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">WATCH OUR STORY</span><h2>วิดีโอแนะนำ FISHGROW</h2><p>เล่าแนวคิด กระบวนการ และผู้คนเบื้องหลังการเปลี่ยนวัตถุดิบให้เป็นคุณค่าใหม่</p></div><div class="fg-about-video-card">' + aboutVideo() + '<div class="fg-video-caption"><div><span class="fg-chip">VIDEO PLACEHOLDER</span><h3>สื่อวิดีโอจริงจะถูกเพิ่มในขั้นถัดไป</h3><p>ตั้งค่า <code>youtubeUrl</code> หรือ <code>videoUrl</code> ใน <code>ABOUT_MEDIA</code> เมื่อมีลิงก์หรือไฟล์ที่ได้รับอนุมัติ</p></div><span class="fg-video-format">YouTube · MP4</span></div></div></div></section>' +
+      '<section class="fg-section fg-soft"><div class="fg-container fg-about-story-grid"><div class="fg-about-story-media">' + aboutImage(ABOUT_MEDIA.storyImageUrl, 'ภาพเรื่องราว FISHGROW จากพื้นที่จริง') + '</div><div class="fg-story fg-about-story-copy"><span class="fg-kicker">เรื่องราวของเรา</span><h2>จุดเริ่มต้นจากวิกฤตสิ่งแวดล้อม</h2><p>แนวคิดของ FISHGROW เริ่มจากการมองเห็นโอกาสในการใช้ปลาหมอคางดำที่จับตามมาตรการที่ถูกต้อง ร่วมกับวัตถุดิบท้องถิ่น มาแปรรูปและพัฒนาเป็นอาหารปลากะพงขาว</p><p>ทุกขั้นตอนควรอ้างอิงข้อมูลและภาพจากการดำเนินงานจริง เมื่อมี asset ที่ผ่านการยืนยันแล้ว เว็บไซต์สามารถนำมาแทนที่ placeholder ได้ทันที</p><div class="fg-story-flow"><span>วัตถุดิบในพื้นที่</span><i>→</i><span>แปรรูปอย่างเหมาะสม</span><i>→</i><span>อาหารปลากะพงขาว</span></div></div></div></section>' +
+      '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">OUR JOURNEY</span><h2>จากปัญหาสู่การผลิตอาหารปลา</h2><p>ลำดับเรื่องราวที่สื่อสารได้ชัดเจน โดยไม่แทนที่หลักฐานจากกระบวนการจริง</p></div><div class="fg-about-timeline"><div><span>01</span><div><b>ปัญหาปลาหมอคางดำ</b><small>ทรัพยากรที่ต้องจัดการตามมาตรการและข้อมูลจากหน่วยงานที่เกี่ยวข้อง</small></div></div><div><span>02</span><div><b>คัดเลือกวัตถุดิบ</b><small>เตรียมวัตถุดิบที่เหมาะสมสำหรับการแปรรูปและตรวจสอบย้อนกลับ</small></div></div><div><span>03</span><div><b>แปรรูปและพัฒนาสูตร</b><small>ลดความชื้น บด ผสม และควบคุมคุณภาพตามกระบวนการที่กำหนด</small></div></div><div><span>04</span><div><b>ผลิตอาหารปลากะพงขาว</b><small>อัดเม็ด อบ และตรวจคุณภาพก่อนนำไปใช้งาน</small></div></div><div><span>05</span><div><b>สร้างคุณค่าอย่างยั่งยืน</b><small>สนับสนุนเกษตรกร ชุมชน และการใช้ทรัพยากรอย่างรับผิดชอบ</small></div></div></div></div></section>' +
+      '<section class="fg-section fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">PROCESS GALLERY</span><h2>ภาพกระบวนการผลิต</h2><p>แกลเลอรี่นี้เตรียมช่องไว้สำหรับภาพจริงของ FISHGROW โดยไม่ใช้ภาพสต็อกหรือภาพที่ทำให้เข้าใจว่าเป็นภาพจากโรงงานจริง</p></div><div class="fg-about-gallery">' + gallery + '</div></div></section>' +
+      '<section class="fg-section fg-about-process"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">SUSTAINABILITY JOURNEY</span><h2>วงจรความยั่งยืน</h2></div><div class="fg-process fg-process-wide"><div><span>01</span><b>ทรัพยากรท้องถิ่น</b><small>ใช้ข้อมูลและวัตถุดิบที่ตรวจสอบได้</small></div><div><span>02</span><b>การแปรรูป</b><small>คัดเลือกและเตรียมวัตถุดิบ</small></div><div><span>03</span><b>อาหารปลา</b><small>พัฒนาเป็นผลิตภัณฑ์</small></div><div><span>04</span><b>สร้างคุณค่า</b><small>เพิ่มมูลค่าทรัพยากร</small></div><div><span>05</span><b>ชุมชนเติบโต</b><small>สร้างโอกาสทางเศรษฐกิจในพื้นที่</small></div></div></div></section>' +
+      '</main>';
   }
 
   function knowledge() {
@@ -534,6 +579,22 @@
     const track = e.target.closest('[data-track-submit]');
     if (track) {
       trackOrder($('#track-code')?.value.trim());
+      return;
+    }
+
+    const mediaPlay = e.target.closest('[data-media-play]');
+    if (mediaPlay) {
+      const media = document.querySelector('[data-about-video]');
+      if (ABOUT_MEDIA.youtubeUrl) {
+        media.innerHTML = '<iframe src="' + esc(ABOUT_MEDIA.youtubeUrl) + '" title="วิดีโอแนะนำ FISHGROW" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+      } else if (ABOUT_MEDIA.videoUrl) {
+        media.innerHTML = '<video controls autoplay' + (ABOUT_MEDIA.videoPosterUrl ? ' poster="' + esc(ABOUT_MEDIA.videoPosterUrl) + '"' : '') + '><source src="' + esc(ABOUT_MEDIA.videoUrl) + '" type="video/mp4">เบราว์เซอร์นี้ไม่รองรับวิดีโอ MP4</video>';
+      } else {
+        mediaPlay.blur();
+        mediaPlay.setAttribute('aria-label', 'ยังไม่มีวิดีโอจริง');
+        const note = media.querySelector('.fg-media-placeholder em');
+        if (note) note.textContent = 'ยังไม่มีวิดีโอจริง · เพิ่ม YouTube หรือ MP4 ภายหลัง';
+      }
       return;
     }
 

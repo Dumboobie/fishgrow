@@ -36,8 +36,8 @@
   const cartCount = () => Object.values(state.cart).reduce((sum, n) => sum + Number(n || 0), 0);
   const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * Number(state.cart[p.product_id] || 0), 0);
 
-  // Media slots intentionally start empty until approved FISHGROW assets are available.
-  // Add real URLs here later, or move this object to a CMS-backed settings table.
+  // FISHGROW process gallery uses the real repository assets below.
+  // Keep these paths local so Vercel serves the exact files shipped with the site.
   const ABOUT_MEDIA = {
     heroImageUrl: '',
     storyImageUrl: '',
@@ -46,11 +46,11 @@
     heroVideoUrl: 'assets/hero-bg.mp4',
     videoUrl: '/assets/video1.mp4',
     gallery: [
-      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: 'https://raw.githubusercontent.com/Dumboobie/fishgrow/main/assets/pic1.jpg' },
-      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: 'https://raw.githubusercontent.com/Dumboobie/fishgrow/main/assets/pic2.jpg' },
-      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: 'https://raw.githubusercontent.com/Dumboobie/fishgrow/main/assets/pic3.jpg' },
-      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: 'https://raw.githubusercontent.com/Dumboobie/fishgrow/main/assets/pic4.jpg' },
-      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: 'https://raw.githubusercontent.com/Dumboobie/fishgrow/main/assets/pic5.jpg' }
+      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '/assets/pic1.jpg?v=3' },
+      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '/assets/pic2.jpg?v=3' },
+      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: '/assets/pic3.jpg?v=3' },
+      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: '/assets/pic4.jpg?v=3' },
+      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: '/assets/pic5.jpg?v=3' }
     ]
   };
 

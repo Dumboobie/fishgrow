@@ -278,7 +278,7 @@
       '<section class="fg-section"><div class="fg-container"><div class="fg-section-head fg-row-head"><div><span class="fg-kicker">Products</span><h2>อาหารปลาที่เหมาะกับฟาร์มของคุณ</h2></div><a href="#products" class="fg-text-link">ดูสินค้าทั้งหมด →</a></div><div class="fg-products-grid">' +
       (featured.length ? featured.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ยังไม่มีสินค้าที่เปิดจำหน่าย</div>') +
       '</div></div></section>' +
-      '<section class="fg-section fg-tool-band"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Farm Tools</span><h2>มากกว่าอาหารปลา เราช่วยคุณจัดการฟาร์ม</h2></div><div class="fg-tool-grid"><a href="#recommend" class="fg-tool-card"><span>🎯</span><div><h3>เลือกอาหารที่เหมาะกับฟาร์ม</h3><p>ตอบคำถามเกี่ยวกับชนิดปลา ช่วงวัย เป้าหมาย และขนาดฟาร์ม</p><b>เริ่มเลือกอาหาร →</b></div></a><a href="#calculator" class="fg-tool-card"><span>🧮</span><div><h3>คำนวณปริมาณอาหาร</h3><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p><b>เริ่มคำนวณ →</b></div></a></div></div></section>' +
+      '<section class="fg-section fg-tool-band"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Farm Tools</span><h2>มากกว่าอาหารปลา เราช่วยคุณจัดการฟาร์ม</h2></div><div class="fg-tool-grid"><a href="#recommend" class="fg-tool-card"><span></span><div><h3>เลือกอาหารที่เหมาะกับฟาร์ม</h3><p>ตอบคำถามเกี่ยวกับชนิดปลา ช่วงวัย เป้าหมาย และขนาดฟาร์ม</p><b>เริ่มเลือกอาหาร →</b></div></a><a href="#calculator" class="fg-tool-card"><span></span><div><h3>คำนวณปริมาณอาหาร</h3><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p><b>เริ่มคำนวณ →</b></div></a></div></div></section>' +
 
 
       '<section class="fg-cta"><div class="fg-container"><h2>ไม่แน่ใจว่าควรเลือกสูตรไหน?</h2><p>ตอบคำถามสั้น ๆ แล้วให้ FishGrow ช่วยแนะนำอาหารที่เหมาะกับฟาร์มของคุณ</p><a href="#recommend" class="fg-btn fg-btn-green">เริ่มค้นหาอาหาร</a></div></section>';
@@ -325,7 +325,7 @@
       '</div>' +
       '<div class="fg-detail-buy">' +
       '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button>' +
-      '<a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a>' +
+      '<a class="fg-btn fg-btn-light" href="#recommend"> ให้ระบบช่วยเลือก</a>' +
       '</div>' +
       '</div>' +
       '</div>' +
@@ -361,7 +361,7 @@
     if (step === 5) {
       const matches = rules.map(rule => ({ rule, score: Number(rule.priority || 0) + (rule.fish_type === r.fish ? 40 : 0) + (rule.stage === r.stage ? 30 : 0) + (rule.goal === r.goal ? 20 : 0) + (rule.farm_size === r.farm ? 10 : 0) })).filter(x => x.rule.fish_type === r.fish).sort((a, b) => b.score - a.score);
       const match = matches[0], p = match ? state.products.find(x => Number(x.product_id) === Number(match.rule.product_id)) : null;
-      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon">🎯</span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(labels[r.goal] || r.goal) + '</span><span>ฟาร์ม: ' + esc(labels[r.farm] || r.farm) + '</span></div>' + (match && match.rule.reason ? '<p class="fg-muted">' + esc(match.rule.reason) + '</p>' : '') + '</div>' + (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') + '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
+      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon"></span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(labels[r.goal] || r.goal) + '</span><span>ฟาร์ม: ' + esc(labels[r.farm] || r.farm) + '</span></div>' + (match && match.rule.reason ? '<p class="fg-muted">' + esc(match.rule.reason) + '</p>' : '') + '</div>' + (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') + '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
     }
     const key = step === 1 ? 'fish_type' : step === 2 ? 'stage' : step === 3 ? 'goal' : 'farm_size', current = values(key);
     const uiKey = key === 'fish_type' ? 'fish' : key === 'farm_size' ? 'farm' : key;

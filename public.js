@@ -163,10 +163,8 @@
       (featured.length ? featured.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ยังไม่มีสินค้าที่เปิดจำหน่าย</div>') +
       '</div></div></section>' +
       '<section class="fg-section fg-tool-band"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Farm Tools</span><h2>มากกว่าอาหารปลา เราช่วยคุณจัดการฟาร์ม</h2></div><div class="fg-tool-grid"><a href="#recommend" class="fg-tool-card"><span>🎯</span><div><h3>เลือกอาหารที่เหมาะกับฟาร์ม</h3><p>ตอบคำถามเกี่ยวกับชนิดปลา ช่วงวัย เป้าหมาย และขนาดฟาร์ม</p><b>เริ่มเลือกอาหาร →</b></div></a><a href="#calculator" class="fg-tool-card"><span>🧮</span><div><h3>คำนวณปริมาณอาหาร</h3><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p><b>เริ่มคำนวณ →</b></div></a></div></div></section>' +
-      '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">FishGrow Process</span><h2>จากทรัพยากรท้องถิ่น สู่ FishGrow</h2></div><div class="fg-process">' +
-      ['ปลาหมอคางดำ','คัดแยกและทำความสะอาด','แปรรูป','บดและทำให้แห้ง','ผสมวัตถุดิบ','อัดเม็ด','ตรวจสอบคุณภาพ','อาหารปลา FishGrow'].map((x, i) => '<div><span>0' + (i + 1) + '</span><b>' + x + '</b></div>').join('') +
-      '</div></div></section>' +
-      '<section class="fg-section fg-impact"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Sustainability</span><h2>เปลี่ยนวิกฤตให้เกิดคุณค่า</h2></div><div class="fg-impact-grid"><div><span>🌱</span><h3>Environment</h3><p>ใช้ทรัพยากรจากปัญหาปลาหมอคางดำให้เกิดประโยชน์</p></div><div><span>💰</span><h3>Economy</h3><p>เพิ่มมูลค่าทรัพยากรและสนับสนุนกิจกรรมทางเศรษฐกิจ</p></div><div><span>👨‍🌾</span><h3>Community</h3><p>เชื่อมโยงทรัพยากร เกษตรกร และชุมชน</p></div></div></div></section>' +
+      
+      
       '<section class="fg-cta"><div class="fg-container"><h2>ไม่แน่ใจว่าควรเลือกสูตรไหน?</h2><p>ตอบคำถามสั้น ๆ แล้วให้ FishGrow ช่วยแนะนำอาหารที่เหมาะกับฟาร์มของคุณ</p><a href="#recommend" class="fg-btn fg-btn-green">เริ่มค้นหาอาหาร</a></div></section>';
   }
 

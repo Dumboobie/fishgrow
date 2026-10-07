@@ -96,7 +96,7 @@
       ? '<span class="fg-session-email">' + esc(state.user.email) + '</span><button class="fg-btn fg-btn-light fg-order-top" type="button" data-public-signout>ออกจากระบบ</button>'
       : '<a class="fg-btn fg-btn-green fg-order-top" href="?mode=account">เข้าสู่ระบบ / สั่งซื้อ</a>';
     return '<header class="fg-header"><div class="fg-container fg-nav">' +
-      '<a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
+      '<a class="fg-logo" href="#home"><img class="fg-logo-image" src="assets/logo.png" alt=""><span class="fg-wordmark">Fish<span>Grow</span></span></a>' +
       '<nav class="fg-main-nav">' +
       navItem('home', 'หน้าหลัก') +
       navItem('products', 'สินค้า') +
@@ -114,7 +114,7 @@
 
   function footer() {
     return '<footer class="fg-footer"><div class="fg-container fg-footer-grid">' +
-      '<div><a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
+      '<div><a class="fg-logo" href="#home"><img class="fg-logo-image" src="assets/logo.png" alt=""><span class="fg-wordmark">Fish<span>Grow</span></span></a>' +
       '<p>เปลี่ยนปลาหมอคางดำให้เป็นคุณค่าใหม่<br>เพื่ออาหารปลาและการเกษตรที่ยั่งยืน</p>' +
       '<small>© 2026 FishGrow Thailand. Sustainable Aquaculture Solutions.</small></div>' +
       '<div><h4>เมนู</h4><a href="#home">หน้าหลัก</a><a href="#products">สินค้า</a><a href="#recommend">เลือกอาหาร</a><a href="#calculator">คำนวณอาหาร</a><a href="#howto">วิธีใช้</a><a href="#about">เกี่ยวกับเรา</a></div>' +

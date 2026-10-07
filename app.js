@@ -609,7 +609,7 @@ async function navigateUser(page) {
 
 // userLayout: สร้าง layout และเมนูของหน้า User
 function userLayout(c) {
-    var links=[['shop','ร้านค้า'],['orders','คำสั่งซื้อของฉัน'],['account','บัญชีของฉัน']];document.getElementById('app').innerHTML='<div class="fg-user-shell"><header class="fg-header fg-user-header"><div class="fg-container fg-user-nav"><a class="fg-logo" href="#" onclick="navigateUser(\'shop\');return false">Fish<span>Grow</span></a><nav class="fg-user-links">'+links.map(function(m) {
+    var links=[['shop','ร้านค้า'],['orders','คำสั่งซื้อของฉัน'],['account','บัญชีของฉัน']];document.getElementById('app').innerHTML='<div class="fg-user-shell"><header class="fg-header fg-user-header"><div class="fg-container fg-user-nav"><a class="fg-logo fg-user-brand" href="#" onclick="navigateUser(\'shop\');return false"><img class="fg-logo-image" src="assets/logo.png" alt=""><span class="fg-wordmark">Fish<span>Grow</span></span></a><nav class="fg-user-links">'+links.map(function(m) {
       return '<button class="fg-user-link '+((S.page==='user-'+m[0]||(m[0]==='shop'&&S.page==='user'))?'active':'')+'" data-page="'+m[0]+'" onclick="navigateUser(this.dataset.page)">'+m[1]+(m[0]==='shop'&&cartCount()?' <b>'+cartCount()+'</b>':'')+'</button>'
     }).join('')+'</nav><div class="fg-user-actions"><span class="fg-user-name">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="fg-btn fg-btn-green" onclick="signOutUser()">ออกจากระบบ</button></div></div></header><main class="fg-user-main"><div class="fg-container">'+c+'</div></main><div id="toast" class="toast"></div></div>'
   }

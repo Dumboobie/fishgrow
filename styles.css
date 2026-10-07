@@ -565,3 +565,16 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
     justify-content:flex-start;
   }
 }
+
+
+/* About hero image: fill the entire image frame */
+.fg-about-hero-media{
+  overflow:hidden;
+}
+.fg-about-hero-media img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+}

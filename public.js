@@ -199,8 +199,14 @@
   }
 
   function knowledge() {
-    const articles = ['วิธีเลือกอาหารปลาให้เหมาะกับช่วงวัย','ให้อาหารปลาวันละกี่ครั้ง?','วิธีคำนวณปริมาณอาหารปลา','วิธีลดต้นทุนอาหารในฟาร์ม','ปลาหมอคางดำคืออะไร?','ทำไมปลาหมอคางดำจึงเป็นปัญหา?','การเพิ่มมูลค่าทรัพยากรท้องถิ่น'];
-    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">KNOWLEDGE</span><h1>ความรู้</h1><p>ความรู้สำหรับเกษตรกรและผู้สนใจการเลี้ยงปลา</p></div><div class="fg-article-grid">' + articles.map((a,i) => '<article><span>0' + ((i%7)+1) + '</span><h3>' + a + '</h3><p>บทความความรู้เกี่ยวกับการเลี้ยงปลา อาหารปลา และการใช้ทรัพยากรอย่างเหมาะสม</p><a href="#knowledge">อ่านเพิ่มเติม →</a></article>').join('') + '</div></div></section>';
+    const articles = state.articles || [];
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">KNOWLEDGE</span><h1>ความรู้</h1><p>ความรู้สำหรับเกษตรกรและผู้สนใจการเลี้ยงปลา</p></div><div class="fg-article-grid">' + (articles.length ? articles.map((a,i) => '<article><span>0' + ((i%9)+1) + '</span><small class="fg-kicker">' + esc(a.category) + '</small><h3>' + esc(a.title) + '</h3><p>' + esc(a.excerpt) + '</p><a href="#knowledge/' + esc(a.slug) + '">อ่านเพิ่มเติม →</a></article>').join('') : '<div class="fg-empty">ยังไม่มีบทความที่เผยแพร่</div>') + '</div></div></section>';
+  }
+
+  function articleDetail(slug) {
+    const a = (state.articles || []).find(x => x.slug === slug);
+    if (!a) return knowledge();
+    return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-breadcrumb"><a href="#knowledge">ความรู้</a> / ' + esc(a.title) + '</div><div class="fg-page-head"><span class="fg-kicker">' + esc(a.category) + '</span><h1>' + esc(a.title) + '</h1><p>' + esc(a.excerpt) + '</p></div><article class="fg-policy"><div style="white-space:pre-wrap;line-height:1.9">' + esc(a.content) + '</div></article></div></section>';
   }
 
   function faq() {
@@ -353,6 +359,7 @@
     if (hash === 'howto') return howto();
     if (hash === 'about') return about();
     if (hash === 'knowledge') return knowledge();
+    if (hash.startsWith('knowledge/')) return articleDetail(hash.split('/')[1]);
     if (hash === 'faq') return faq();
     if (hash === 'tracking') return tracking();
     if (hash === 'contact') return contact();

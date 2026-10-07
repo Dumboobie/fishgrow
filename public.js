@@ -39,7 +39,7 @@
   // FISHGROW process gallery uses the real repository assets below.
   // Keep these paths local so Vercel serves the exact files shipped with the site.
   const ABOUT_MEDIA = {
-    heroImageUrl: '',
+    heroImageUrl: 'pic6.jpg?v=1',
     storyImageUrl: '',
     videoPosterUrl: '',
     youtubeUrl: '',

@@ -306,6 +306,19 @@
       delete state.cart[remove.dataset.cartRemove];
       saveCart();
       render();
+      return;
+    }
+
+    const track = e.target.closest('[data-track-submit]');
+    if (track) {
+      trackOrder($('#track-code')?.value.trim());
+      return;
+    }
+
+    const menu = e.target.closest('.fg-menu-btn');
+    if (menu) {
+      document.querySelector('.fg-main-nav')?.classList.toggle('open');
+      return;
     }
   }
 

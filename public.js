@@ -94,7 +94,7 @@
   function header() {
     const accountAction = state.user
       ? '<span class="fg-session-email">' + esc(state.user.email) + '</span><button class="fg-btn fg-btn-light fg-order-top" type="button" data-public-signout>ออกจากระบบ</button>'
-      : '<a class="fg-btn fg-btn-green fg-order-top" href="#account">เข้าสู่ระบบ / สั่งซื้อ</a>';
+      : '<a class="fg-btn fg-btn-green fg-order-top" href="?mode=account">เข้าสู่ระบบ / สั่งซื้อ</a>';
     return '<header class="fg-header"><div class="fg-container fg-nav">' +
       '<a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
       '<nav class="fg-main-nav">' +

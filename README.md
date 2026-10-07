@@ -10,7 +10,7 @@
 
 ## Authentication
 
-- ใช้ Supabase Auth สำหรับสมัครสมาชิก, User Login, Admin Login และ Logout
+- ใช้ Supabase Auth สำหรับสมัครสมาชิกและเข้าสู่ระบบหน้าเดียว; ระบบตรวจ role แล้วพา User ไปหน้าเว็บใหม่หรือ Admin ไปหน้าแผงจัดการโดยอัตโนมัติ พร้อม Logout
 - role อ่านจาก `public.profiles` เท่านั้น และการสมัครสมาชิกใหม่จะได้ role `user` เสมอ
 - หน้าจัดการธุรกิจเดิมเปิดเฉพาะ profile ที่มี role `admin`; หน้า User ไม่เห็นข้อมูล `app_state`
 - frontend ใช้เฉพาะ Supabase publishable key ใน `supabase-client.js` และไม่มี `service_role` key

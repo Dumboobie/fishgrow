@@ -8,7 +8,7 @@ let USER_ORDERS=[];
 let ADMIN_WEB_ORDERS=[];
 
 // S: state หลักของระบบ Admin เช่น สินค้า วัตถุดิบ คำสั่งซื้อ สูตร และค่าใช้จ่าย
-const S={page:'dashboard',materials:[{id:1,name:'ปลาหมอคางดำบดแห้ง',category:'วัตถุดิบหลัก',stock:820,price:18},{id:2,name:'กากถั่วเหลือง',category:'โปรตีนเสริม',stock:430,price:22},{id:3,name:'กากรำข้าว',category:'วัตถุดิบเสริม',stock:350,price:11}],products:[{id:1,name:'FISHGROW White Snapper 40',sku:'FG-WS40',stock:680,price:40}],orders:[{id:'FG-2026-001',customer:'ฟาร์มปลากะพงสมชาย',date:'05/10/2569',amount:24000,status:'ชำระแล้ว'},{id:'FG-2026-002',customer:'กลุ่มเกษตรกรบ้านแพ้ว',date:'04/10/2569',amount:12000,status:'รอชำระ'}],customers:[{id:1,name:'ฟาร์มปลากะพงสมชาย',area:'สมุทรสาคร',orders:18},{id:2,name:'กลุ่มเกษตรกรบ้านแพ้ว',area:'สมุทรสาคร',orders:11}],expenses:[{date:'01/10/2569',type:'วัตถุดิบ',detail:'ปลาหมอคางดำบดแห้ง',amount:9000},{date:'02/10/2569',type:'ขนส่ง',detail:'ส่งสินค้า',amount:2400}],recipes:[{id:1,name:'FISHGROW White Snapper 40',yieldKg:100,items:[['ปลาหมอคางดำบดแห้ง',55,18],['กากถั่วเหลือง',25,22],['กากรำข้าว',18,11]]}]};
+const S={page:'dashboard',materials:[],products:[],orders:[],customers:[],expenses:[],recipes:[],productionRuns:[]};
 
 if(!Array.isArray(S.productionRuns))S.productionRuns=[];
 
@@ -32,7 +32,7 @@ function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;
 function head(t,d,a){return '<div class="page-head"><div><h2>'+t+'</h2><p>'+d+'</p></div>'+ (a||'')+'</div>'}
 
 // layout: สร้าง layout หลักของ Admin
-function layout(c){if(!currentUser||!AUTH_STATE.profile)return renderAuth();if(AUTH_STATE.profile.role!=='admin')return userLayout(userPage());document.getElementById('app').innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="nav"><div style="font-size:11px;opacity:.5;padding:8px">เมนูหลัก</div>'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main"><div class="topbar"><span>FISHGROW / ระบบจัดการธุรกิจ</span><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="resetDemo()">↻ รีเซ็ตข้อมูล</button><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'}
+function layout(c){if(!currentUser||!AUTH_STATE.profile)return renderAuth();if(AUTH_STATE.profile.role!=='admin')return userLayout(userPage());document.getElementById('app').innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="nav"><div style="font-size:11px;opacity:.5;padding:8px">เมนูหลัก</div>'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main"><div class="topbar"><span>FISHGROW / ระบบจัดการธุรกิจ</span><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'}
 // orderStatusClass: แปลงสถานะคำสั่งซื้อเป็น CSS class
 function orderStatusClass(status){return status==='รอชำระ'||status==='รอรับคำสั่งซื้อ'||status==='pending'?'warn':status==='ยกเลิก'||status==='cancelled'?'muted':status==='กำลังจัดเตรียม'||status==='จัดส่งแล้ว'||status==='processing'||status==='shipped'?'info':''}
 // ordersTable: สร้างตารางคำสั่งซื้อ และเปิดให้ Admin เปลี่ยนสถานะได้
@@ -278,9 +278,6 @@ function filter(e){var q=e.value.toLowerCase();document.querySelectorAll('#rows 
 
 // toast: แสดงข้อความแจ้งเตือน
 function toast(t){var e=document.getElementById('toast');e.textContent=t;e.className='toast show';setTimeout(function(){e.className='toast'},1800)}
-
-// resetDemo: รีเซ็ตข้อมูล Demo
-function resetDemo(){localStorage.removeItem('fg');location.reload()}
 
 // hydrateProfile: โหลด profile และ role ของผู้ใช้จาก Supabase
 async function hydrateProfile(user) {

@@ -70,6 +70,18 @@
     return '<div class="fg-video-frame fg-video-placeholder" data-about-video>' + aboutMediaPlaceholder('วิดีโอแนะนำ FISHGROW', 'รองรับ YouTube หรือ MP4 เมื่อมีวิดีโอจริง') + '<button class="fg-media-play" type="button" data-media-play aria-label="เปิดวิดีโอแนะนำ FISHGROW">▶</button></div>';
   }
 
+  function heroVideo() {
+    if (ABOUT_MEDIA.videoUrl) {
+      return '<div class="fg-video-frame fg-hero-video"><video autoplay muted loop playsinline preload="metadata"' +
+        (ABOUT_MEDIA.videoPosterUrl ? ' poster="' + esc(ABOUT_MEDIA.videoPosterUrl) + '"' : '') +
+        ' aria-label="วิดีโอแนะนำ FISHGROW"><source src="' + esc(ABOUT_MEDIA.videoUrl) +
+        '" type="video/mp4">เบราว์เซอร์นี้ไม่รองรับวิดีโอ MP4</video></div>';
+    }
+    return '<div class="fg-video-frame fg-video-placeholder">' +
+      aboutMediaPlaceholder('วิดีโอแนะนำ FISHGROW', 'เพิ่มไฟล์ MP4 เพื่อแสดงวิดีโอแบบวนลูป') +
+      '</div>';
+  }
+
   async function loadProducts() {
     if (!supabase) {
       console.error('FISHGROW: Supabase client is not available.');
@@ -193,7 +205,7 @@
       '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
       '<div class="fg-hero-actions"><a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a><a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a></div>' +
       '<div class="fg-hero-tags"><span>♻️ Local Resource</span><span>🐟 Aquaculture Feed</span><span>🌱 Sustainability</span></div>' +
-      '</div><div class="fg-hero-media">' + aboutVideo() + '<p class="fg-hero-media-note">วิดีโอแนะนำ FISHGROW · รองรับ YouTube หรือ MP4 ภายหลัง</p></div></div></section>';
+      '</div><div class="fg-hero-media">' + heroVideo() + '</div></div></section>';
   }
 
   function home() {

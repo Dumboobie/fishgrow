@@ -321,7 +321,7 @@
     return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><h1>นโยบายความเป็นส่วนตัว</h1><p>FishGrow เก็บและใช้ข้อมูลเท่าที่จำเป็นต่อการให้บริการและจัดการคำสั่งซื้อ</p></div><div class="fg-policy"><h3>ข้อมูลที่อาจใช้</h3><p>ข้อมูลบัญชี ข้อมูลติดต่อ ข้อมูลจัดส่ง และข้อมูลคำสั่งซื้อ</p><h3>การใช้งานข้อมูล</h3><p>ใช้เพื่อดำเนินการสั่งซื้อ ติดต่อผู้ใช้ และปรับปรุงบริการ</p></div></div></section>';
   }
 
-  function page() {
+  async function page() {
     const hash = location.hash.slice(1) || 'home';
     if (hash.startsWith('product/')) return productDetail(hash.split('/')[1]);
     if (hash === 'home') return home();
@@ -448,8 +448,8 @@
     }
   }
 
-  function render() {
-    app.innerHTML = header() + page() + footer();
+  async function render() {
+    app.innerHTML = header() + await page() + footer();
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 

@@ -76,7 +76,7 @@
     return '<footer class="fg-footer"><div class="fg-container fg-footer-grid">' +
       '<div><a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
       '<p>เปลี่ยนปลาหมอคางดำให้เป็นคุณค่าใหม่<br>เพื่ออาหารปลาและการเกษตรที่ยั่งยืน</p>' +
-      '<small>© 2024 FishGrow Thailand. Sustainable Aquaculture Solutions.</small></div>' +
+      '<small>© 2026 FishGrow Thailand. Sustainable Aquaculture Solutions.</small></div>' +
       '<div><h4>เมนู</h4><a href="#home">หน้าหลัก</a><a href="#products">สินค้า</a><a href="#recommend">เลือกอาหาร</a><a href="#calculator">คำนวณอาหาร</a><a href="#howto">วิธีใช้</a><a href="#about">เกี่ยวกับเรา</a></div>' +
       '<div><h4>ความรู้และช่วยเหลือ</h4><a href="#knowledge">ความรู้</a><a href="#tracking">ติดตามคำสั่งซื้อ</a><a href="#faq">FAQ</a><a href="#contact">ติดต่อเรา</a></div>' +
       '<div><h4>นโยบาย</h4><a href="#privacy">นโยบายความเป็นส่วนตัว</a><a href="#terms">เงื่อนไขการสั่งซื้อ</a><a href="#returns">นโยบายการคืนสินค้า</a></div>' +
@@ -291,8 +291,13 @@
   async function submitCheckout(form) {
     const status = $('#checkout-status');
     const proof = $('#payment-proof')?.files?.[0];
+    const allowedProofTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (proof && proof.size > 6 * 1024 * 1024) {
       status.textContent = 'ไฟล์หลักฐานมีขนาดเกิน 6 MB';
+      return;
+    }
+    if (proof && !allowedProofTypes.includes(proof.type)) {
+      status.textContent = 'รองรับเฉพาะ JPG, PNG, WebP หรือ PDF';
       return;
     }
 
@@ -388,6 +393,11 @@
 
   async function trackOrder(code) {
     const result = $('#track-result');
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData?.user) {
+      result.innerHTML = '<p class="fg-error">กรุณาเข้าสู่ระบบก่อนติดตามคำสั่งซื้อ เพื่อปกป้องข้อมูลคำสั่งซื้อของคุณ</p>';
+      return;
+    }
     if (!code) {
       result.innerHTML = '<p class="fg-error">กรุณากรอกหมายเลขคำสั่งซื้อ</p>';
       return;

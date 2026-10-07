@@ -18,7 +18,7 @@ const ORDER_STATUSES=['รอรับคำสั่งซื้อ','กำล
 const money=n=>new Intl.NumberFormat('th-TH').format(n||0);
 const esc=s=>String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c});
 
-const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
+const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['stock','▤','สต็อก'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
 // go: เปลี่ยนหน้าของ Admin แล้ว render หน้าจอใหม่
 function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;S.page=p;render()}
 
@@ -660,7 +660,7 @@ window.addEventListener('unhandledrejection',function(event) {
 // render: เลือกหน้าที่ต้องแสดงตาม role และ S.page
 async function render() {
     if(!currentUser||!AUTH_STATE.profile)return renderAuth();
-  var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings,'knowledge-admin':knowledgeAdmin,'recommendation-admin':recommendationAdmin,'product-metadata':productMetadata};
+  var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,stock:stock,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings,'knowledge-admin':knowledgeAdmin,'recommendation-admin':recommendationAdmin,'product-metadata':productMetadata};
     if(AUTH_STATE.profile.role!=='admin')return layout(userPage());
     if(!p[S.page])S.page='dashboard';
     if(S.page==='knowledge-admin') await loadKnowledgeAdmin();

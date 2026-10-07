@@ -24,7 +24,7 @@ function save(){localStorage.setItem('fg',JSON.stringify(S));void syncAppState()
 
 // load: โหลด state เดิมจาก localStorage
 function load(){try{if(remoteStateLoaded||(AUTH_STATE.profile&&AUTH_STATE.profile.role!=='admin'))return;Object.assign(S,JSON.parse(localStorage.getItem('fg'))||{})}catch(e){}}
-const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน']];
+const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า']];
 // go: เปลี่ยนหน้าของ Admin แล้ว render หน้าจอใหม่
 function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;S.page=p;render()}
 
@@ -128,6 +128,16 @@ async function updateStoreOrderStatus(orderId,status) {
   } catch(error) {
     await loadAdminWebOrders();render();toast('เปลี่ยนสถานะไม่สำเร็จ: '+(error.message||'กรุณาลองใหม่'))
   }
+}
+async function storeSettings(){
+  var r=await window.fishgrowSupabase.from('store_settings').select('*').eq('id',1).maybeSingle();
+  var s=r.data||{};
+  return head('ตั้งค่าร้านค้า','กำหนดข้อมูลการชำระเงิน ช่องทางติดต่อ และการจัดส่ง')+'<div class="card"><div class="form-grid">'+field('ชื่อร้านค้า','ss-name',s.store_name||'FISHGROW')+field('ชื่อผู้รับ PromptPay','ss-pp-name',s.promptpay_name||'')+field('หมายเลข PromptPay','ss-pp-number',s.promptpay_number||'')+field('ธนาคาร','ss-bank',s.bank_name||'')+field('ชื่อบัญชี','ss-bank-name',s.bank_account_name||'')+field('เลขบัญชี','ss-bank-number',s.bank_account_number||'')+field('เบอร์โทร','ss-phone',s.contact_phone||'')+field('LINE','ss-line',s.contact_line||'')+field('Email','ss-email',s.contact_email||'')+'<div class="field full"><label>หมายเหตุการจัดส่ง</label><textarea id="ss-shipping" rows="3">'+esc(s.shipping_note||'')+'</textarea></div><div class="field"><label><input id="ss-cod" type="checkbox" '+(s.cod_enabled?'checked':'')+'> เปิดเก็บเงินปลายทาง</label></div></div><button class="btn green" onclick="saveStoreSettings()">บันทึกการตั้งค่า</button></div>';
+}
+async function saveStoreSettings(){
+  var payload={store_name:document.getElementById('ss-name').value.trim(),promptpay_name:document.getElementById('ss-pp-name').value.trim(),promptpay_number:document.getElementById('ss-pp-number').value.trim(),bank_name:document.getElementById('ss-bank').value.trim(),bank_account_name:document.getElementById('ss-bank-name').value.trim(),bank_account_number:document.getElementById('ss-bank-number').value.trim(),contact_phone:document.getElementById('ss-phone').value.trim(),contact_line:document.getElementById('ss-line').value.trim(),contact_email:document.getElementById('ss-email').value.trim(),shipping_note:document.getElementById('ss-shipping').value.trim(),cod_enabled:document.getElementById('ss-cod').checked,updated_at:new Date().toISOString()};
+  var r=await window.fishgrowSupabase.from('store_settings').upsert(Object.assign({id:1},payload)).select('id').single();
+  if(r.error){toast('บันทึกตั้งค่าร้านค้าไม่สำเร็จ: '+r.error.message);return} toast('บันทึกตั้งค่าร้านค้าแล้ว');
 }
 function finance() {
   var i=recognizedIncome(),pending=pendingOrderValue(),e=S.expenses.reduce(function(a,o) {
@@ -494,7 +504,7 @@ window.addEventListener('unhandledrejection',function(event) {
 
 // render: เลือกหน้าที่ต้องแสดงตาม role และ S.page
 function render() {
-    if(AUTH_STATE.profile&&AUTH_STATE.profile.role==='admin')load();if(!currentUser||!AUTH_STATE.profile)return renderAuth();var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports};if(AUTH_STATE.profile.role!=='admin')return layout(userPage());if(!p[S.page])S.page='dashboard';layout(p[S.page]())
+    if(AUTH_STATE.profile&&AUTH_STATE.profile.role==='admin')load();if(!currentUser||!AUTH_STATE.profile)return renderAuth();var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings};if(AUTH_STATE.profile.role!=='admin')return layout(userPage());if(!p[S.page])S.page='dashboard';layout(p[S.page]())
   }
 
 initializeAuth();

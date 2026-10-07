@@ -147,9 +147,18 @@
       '</div></section>';
   }
 
+  function homeMedia() {
+    const highlights = ABOUT_MEDIA.gallery.slice(0, 3).map((item, index) =>
+      '<figure class="fg-home-gallery-card"><div class="fg-home-gallery-media">' + aboutImage(item.url, item.label + ' ของ FISHGROW') + '<span class="fg-gallery-index">0' + (index + 1) + '</span></div><figcaption><b>' + esc(item.label) + '</b><small>' + esc(item.detail) + '</small></figcaption></figure>'
+    ).join('');
+
+    return '<section class="fg-section fg-home-media fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">SEE FISHGROW</span><h2>เรื่องราวของเราในภาพและวิดีโอ</h2><p>พื้นที่สื่อสำหรับเล่าแนวคิด กระบวนการ และผลิตภัณฑ์ของ FISHGROW โดยจะเปลี่ยนเป็น asset จริงเมื่อพร้อมใช้งาน</p></div><div class="fg-home-media-grid"><div class="fg-home-video-card">' + aboutVideo() + '<div class="fg-home-media-caption"><span class="fg-chip">VIDEO PLACEHOLDER</span><h3>วิดีโอแนะนำ FISHGROW</h3><p>รองรับ YouTube หรือ MP4 ผ่านการตั้งค่าใน <code>ABOUT_MEDIA</code></p></div></div><div class="fg-home-image-card"><div class="fg-home-feature-image">' + aboutImage(ABOUT_MEDIA.heroImageUrl, 'ภาพแนะนำ FISHGROW จากพื้นที่จริง') + '</div><div class="fg-home-media-caption"><span class="fg-chip">IMAGE PLACEHOLDER</span><h3>ภาพจากการดำเนินงานจริง</h3><p>ยังไม่มีภาพจริงใน repository สามารถเพิ่ม URL หรือ asset ที่ผ่านการอนุมัติได้ภายหลัง</p><a class="fg-text-link" href="#about">ดูเรื่องราว FISHGROW →</a></div></div></div><div class="fg-home-gallery">' + highlights + '</div></div></section>';
+  }
+
   function home() {
     const featured = state.products.slice(0, 3);
     return hero() +
+      homeMedia() +
       '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">FishGrow</span><h2>จากปัญหาสู่โอกาส</h2><p>FishGrow นำปลาหมอคางดำซึ่งเป็นทรัพยากรจากปัญหาการแพร่ระบาด มาใช้ประโยชน์ผ่านกระบวนการแปรรูปและผสมกับวัตถุดิบท้องถิ่น เพื่อพัฒนาเป็นอาหารปลาที่ตอบโจทย์เกษตรกร</p></div>' +
       '<div class="fg-value-grid"><div><b>🌱 สิ่งแวดล้อม</b><p>นำทรัพยากรจากปัญหามาใช้ประโยชน์อย่างเหมาะสม</p></div><div><b>💰 เศรษฐกิจ</b><p>เพิ่มมูลค่าให้วัตถุดิบและสนับสนุนเศรษฐกิจท้องถิ่น</p></div><div><b>👨‍🌾 ชุมชน</b><p>เชื่อมโยงทรัพยากรท้องถิ่นกับเกษตรกร</p></div></div></div></section>' +
       '<section class="fg-section fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Why FishGrow</span><h2>ทำไมต้อง FishGrow?</h2></div><div class="fg-feature-grid"><div class="fg-feature"><span>♻️</span><h3>เปลี่ยนปัญหาเป็นคุณค่า</h3><p>นำปลาหมอคางดำมาใช้ประโยชน์อย่างเหมาะสม</p></div><div class="fg-feature"><span>🐟</span><h3>แหล่งโปรตีนจากปลา</h3><p>ใช้วัตถุดิบจากปลาเป็นส่วนหนึ่งของสูตรอาหาร</p></div><div class="fg-feature"><span>🌾</span><h3>วัตถุดิบท้องถิ่น</h3><p>สนับสนุนการใช้ทรัพยากรที่มีอยู่ในพื้นที่</p></div><div class="fg-feature"><span>💰</span><h3>ใส่ใจต้นทุน</h3><p>พัฒนาอาหารปลาให้ตอบโจทย์เกษตรกร</p></div><div class="fg-feature"><span>🌱</span><h3>สร้างความยั่งยืน</h3><p>เชื่อมโยงสิ่งแวดล้อม เศรษฐกิจ และชุมชน</p></div></div></div></section>' +

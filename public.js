@@ -139,10 +139,53 @@
   function productDetail(id) {
     const p = state.products.find(x => String(x.product_id) === String(id));
     if (!p) return products();
+
     state.selectedProduct = p;
-    const image = p.image_url ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '">' : '<div class="fg-product-placeholder large">🐟</div>';
-    return '<section class="fg-page"><div class="fg-container"><div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div><div class="fg-detail-grid"><div><div class="fg-detail-image">' + image + '</div></div><div class="fg-detail-info"><span class="fg-kicker">AQUACULTURE FEED</span><h1>' + esc(p.name) + '</h1><p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p><div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div><div class="fg-detail-facts"><div><small>SKU</small><b>' + esc(p.sku) + '</b></div><div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div><div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div></div><div class="fg-detail-buy"><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button><a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a></div></div></div>' +
-      '<div class="fg-info-grid"><article><h3>รายละเอียดสินค้า</h3><p>' + esc(p.description || 'ยังไม่ได้ระบุรายละเอียดสินค้า')</p>' + (p.protein_pct != null ? '<small>โปรตีน ' + money(p.protein_pct) + '%</small>' : '') + (p.pellet_size ? '<small>ขนาดเม็ด ' + esc(p.pellet_size) + '</small>' : '') + '</article><article><h3>ส่วนประกอบ</h3><p>' + esc(p.ingredients || 'ยังไม่ได้ระบุส่วนประกอบ')</p></article><article><h3>วิธีใช้และการเก็บรักษา</h3><p>' + esc(p.usage_note || 'ควรปรับตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน')</p><p>' + esc(p.storage_note || 'เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดและความชื้น')</p><a href="#howto">อ่านวิธีใช้ →</a></article></div></div></section>';
+
+    const image = p.image_url
+      ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '">'
+      : '<div class="fg-product-placeholder large">🐟</div>';
+
+    const protein = p.protein_pct != null
+      ? '<small>โปรตีน ' + money(p.protein_pct) + '%</small>'
+      : '';
+
+    const pellet = p.pellet_size
+      ? '<small>ขนาดเม็ด ' + esc(p.pellet_size) + '</small>'
+      : '';
+
+    return '<section class="fg-page">' +
+      '<div class="fg-container">' +
+        '<div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div>' +
+        '<div class="fg-detail-grid">' +
+          '<div><div class="fg-detail-image">' + image + '</div></div>' +
+          '<div class="fg-detail-info">' +
+            '<span class="fg-kicker">AQUACULTURE FEED</span>' +
+            '<h1>' + esc(p.name) + '</h1>' +
+            '<p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p>' +
+            '<div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div>' +
+            '<div class="fg-detail-facts">' +
+              '<div><small>SKU</small><b>' + esc(p.sku) + '</b></div>' +
+              '<div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div>' +
+              '<div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div>' +
+            '</div>' +
+            '<div class="fg-detail-buy">' +
+              '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button>' +
+              '<a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="fg-info-grid">' +
+          '<article><h3>รายละเอียดสินค้า</h3><p>' + esc(p.description || 'ยังไม่ได้ระบุรายละเอียดสินค้า') + '</p>' + protein + pellet + '</article>' +
+          '<article><h3>ส่วนประกอบ</h3><p>' + esc(p.ingredients || 'ยังไม่ได้ระบุส่วนประกอบ') + '</p></article>' +
+          '<article><h3>วิธีใช้และการเก็บรักษา</h3>' +
+            '<p>' + esc(p.usage_note || 'ควรปรับตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน') + '</p>' +
+            '<p>' + esc(p.storage_note || 'เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดและความชื้น') + '</p>' +
+            '<a href="#howto">อ่านวิธีใช้ →</a>' +
+          '</article>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
   }
 
   function compare() {

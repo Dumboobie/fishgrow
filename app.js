@@ -234,12 +234,14 @@ function reports() {
   },0);return head('รายงาน','สรุปผลการดำเนินงานเพื่อใช้วางแผนธุรกิจ')+'<div class="grid two"><div class="card"><h3>สรุปผลประกอบการ</h3><div class="bar-list"><div class="bar-row"><span>รายรับยืนยันแล้ว</span><div class="bar"><i style="width:100%"></i></div><b>฿'+money(s)+'</b></div><div class="bar-row"><span>คำสั่งซื้อรอดำเนินการ</span><div class="bar"><i style="width:'+(s?Math.min(pending/s*100,100):0)+'%"></i></div><b>฿'+money(pending)+'</b></div><div class="bar-row"><span>ค่าใช้จ่าย</span><div class="bar"><i style="width:'+(s?Math.min(e/s*100,100):0)+'%"></i></div><b>฿'+money(e)+'</b></div><div class="bar-row"><span>กำไร</span><div class="bar"><i style="width:'+(s?Math.max(0,Math.min((s-e)/s*100,100)):0)+'%"></i></div><b>฿'+money(s-e)+'</b></div></div></div><div class="card"><h3>ตัวชี้วัด FISHGROW</h3><table><tbody><tr><td>ราคาเป้าหมาย</td><td><b>฿40/kg</b></td></tr><tr><td>TAM</td><td><b>600,000 ราย</b></td></tr><tr><td>SAM</td><td><b>80,000 ตัน/ปี</b></td></tr><tr><td>SOM</td><td><b>25,000 ตัน/ปี</b></td></tr><tr><td>ตลาดเป้าหมาย</td><td><b>เกษตรกรรายเล็ก–กลาง</b></td></tr></tbody></table></div></div>'
 }
 function modal(title,body,fn) {
-  var e=document.getElementById('modal');e.innerHTML='<div class="modal"><div class="modal-head"><h3>'+title+'</h3><button class="close" onclick="closeModal()">×</button></div>'+body+'<div class="modal-foot"><button class="btn light" onclick="closeModal()">ยกเลิก</button><button class="btn green" id="save">บันทึก</button></div></div>';e.className='modal-bg show';document.getElementById('save').onclick=function() {
+  var e=document.getElementById('modal');e.innerHTML='<div class="modal"><div class="modal-head"><h3>'+title+'</h3><button class="close" onclick="closeModal()">×</button></div>'+body+'<div class="modal-foot"><button class="btn light" onclick="closeModal()">ยกเลิก</button><button class="btn green" id="save">บันทึก</button></div></div>';e.className='modal-bg show';document.getElementById('save').onclick=async function() {
+    var button=this;button.disabled=true;
     try {
-      var result=fn();if(result===false)return;save();closeModal();render();toast('บันทึกข้อมูลเรียบร้อย')
+      var result=await fn();if(result===false)return;
+      save();closeModal();render();toast('บันทึกข้อมูลเรียบร้อย')
     } catch(error) {
       toast(error.message||'กรุณาตรวจสอบข้อมูลแล้วลองใหม่')
-    }
+    } finally {button.disabled=false}
   }
 }
 function closeModal() {
@@ -253,7 +255,22 @@ function safeImageUrl(value) {
 // previewProductImage: ตรวจสอบและแสดงตัวอย่างรูปสินค้า
 function previewProductImage(value){var img=document.getElementById('product-image-preview'),hint=document.getElementById('product-image-hint'),url=safeImageUrl(value);if(!img||!hint)return;if(!String(value||'').trim()){img.removeAttribute('src');img.style.display='none';hint.textContent='ใส่ลิงก์รูปโดยตรง หรือ Google Drive ที่แชร์ให้ทุกคนดูได้';return}if(!url){img.removeAttribute('src');img.style.display='none';hint.textContent='URL ต้องขึ้นต้นด้วย https:// หรือ http://';return}hint.textContent='กำลังตรวจสอบรูปภาพ…';img.onerror=function(){hint.textContent='เปิดรูปไม่ได้: ตรวจว่าลิงก์เป็นสาธารณะ (ทุกคนที่มีลิงก์ดูได้) และชี้ไปยังรูปภาพ';img.style.color='#b42318'};img.onload=function(){hint.textContent='ตัวอย่างรูปสินค้า';hint.style.color=''};img.src=url;img.style.display='block'}
 // productModal: เปิดฟอร์มเพิ่มหรือแก้ไขสินค้า
-function productModal(id){var p=S.products.find(function(x){return x.id===id})||{name:'',sku:'',stock:0,price:40,image_url:''},initialImage=safeImageUrl(p.image_url)||'';modal(id?'แก้ไขสินค้า':'เพิ่มสินค้า','<div class="form-grid">'+field('ชื่อสินค้า','pn',p.name)+field('SKU','ps',p.sku)+field('คงเหลือ kg','pk',p.stock)+field('ราคาขาย/kg','pp',p.price)+'<div class="field full"><label>URL รูปสินค้า</label><input id="pi" type="url" value="'+esc(initialImage)+'" placeholder="https://example.com/product.jpg" oninput="previewProductImage(this.value)"><small id="product-image-hint" class="muted">ใส่ลิงก์รูปภาพสาธารณะที่เปิดดูได้</small><img id="product-image-preview" src="'+esc(initialImage)+'" alt="ตัวอย่างรูปสินค้า" style="display:'+(initialImage?'block':'none')+';width:120px;height:90px;object-fit:cover;border-radius:10px"></div></div>',function(){var raw=document.getElementById('pi').value.trim(),image=safeImageUrl(raw);if(raw&&!image)throw new Error('URL รูปสินค้าต้องขึ้นต้นด้วย https:// หรือ http://');p.id=p.id||Date.now();p.name=document.getElementById('pn').value;p.sku=document.getElementById('ps').value;p.stock=+document.getElementById('pk').value;p.price=+document.getElementById('pp').value;p.image_url=image;if(!id)S.products.push(p)})}
+function productModal(id){
+  var p=S.products.find(function(x){return Number(x.id)===Number(id)})||{id:null,name:'',sku:'',stock:0,price:40,image_url:'',is_available:true},initialImage=safeImageUrl(p.image_url)||'';
+  modal(id?'แก้ไขสินค้า':'เพิ่มสินค้า','<div class="form-grid">'+field('ชื่อสินค้า','pn',p.name)+field('SKU','ps',p.sku)+field('คงเหลือ kg','pk',p.stock)+field('ราคาขาย/kg','pp',p.price)+'<div class="field full"><label>URL รูปสินค้า</label><input id="pi" type="url" value="'+esc(initialImage)+'" placeholder="https://example.com/product.jpg" oninput="previewProductImage(this.value)"><small id="product-image-hint" class="muted">ใส่ลิงก์รูปภาพสาธารณะที่เปิดดูได้</small><img id="product-image-preview" src="'+esc(initialImage)+'" alt="ตัวอย่างรูปสินค้า" style="display:'+(initialImage?'block':'none')+';width:120px;height:90px;object-fit:cover;border-radius:10px"></div></div>',async function(){
+    var raw=document.getElementById('pi').value.trim(),image=safeImageUrl(raw);
+    if(raw&&!image)throw new Error('URL รูปสินค้าต้องขึ้นต้นด้วย https:// หรือ http://');
+    var name=document.getElementById('pn').value.trim(),sku=document.getElementById('ps').value.trim(),stock=Number(document.getElementById('pk').value),price=Number(document.getElementById('pp').value);
+    if(!name)throw new Error('กรุณาระบุชื่อสินค้า');
+    if(!sku)throw new Error('กรุณาระบุ SKU');
+    if(!Number.isFinite(stock)||stock<0)throw new Error('คงเหลือต้องเป็น 0 ขึ้นไป');
+    if(!Number.isFinite(price)||price<0)throw new Error('ราคาต้องเป็น 0 ขึ้นไป');
+    var productId=Number(p.id)||Date.now();
+    var payload={product_id:productId,sku:sku,name:name,stock:stock,price:price,is_available:p.is_available!==false,image_url:image||null,updated_at:new Date().toISOString()};
+    var r=await window.fishgrowSupabase.from('store_products').upsert(payload,{onConflict:'product_id'}).select('product_id,sku,name,stock,price,is_available,image_url').single();
+    if(r.error)throw r.error;
+    await loadAdminStoreProducts();
+  })}
 
 // materialModal: เปิดฟอร์มวัตถุดิบ
 function materialModal(id){var m=S.materials.find(function(x){return x.id===id})||{name:'',category:'วัตถุดิบหลัก',stock:0,price:0};modal(id?'แก้ไขวัตถุดิบ':'เพิ่มวัตถุดิบ','<div class="form-grid">'+field('ชื่อวัตถุดิบ','mn',m.name)+field('ประเภท','mc',m.category)+field('คงเหลือ kg','mk',m.stock)+field('ราคา/kg','mp',m.price)+'</div>',function(){m.id=m.id||Date.now();m.name=document.getElementById('mn').value;m.category=document.getElementById('mc').value;m.stock=+document.getElementById('mk').value;m.price=+document.getElementById('mp').value;if(!id)S.materials.push(m)})}
@@ -294,14 +311,20 @@ async function loadRemoteState() {
 
 // syncAppState: ซิงก์ state ของ Admin ไปยัง Supabase
 async function syncAppState() {
-    if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin'||!window.fishgrowSupabase)return;var r=await window.fishgrowSupabase.from('app_state').upsert({id:1,data:S,updated_at:new Date().toISOString()},{onConflict:'id'});if(r.error) {
-      console.warn('บันทึก app_state ไม่สำเร็จ',r.error);return
+    if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin'||!window.fishgrowSupabase)return;
+    var r=await window.fishgrowSupabase.from('app_state').upsert({id:1,data:S,updated_at:new Date().toISOString()},{onConflict:'id'});
+    if(r.error)console.warn('บันทึก app_state ไม่สำเร็จ',r.error);
+  }
+
+// loadAdminStoreProducts: โหลดสินค้า Admin จาก store_products โดยตรง
+async function loadAdminStoreProducts() {
+    var r=await window.fishgrowSupabase.from('store_products').select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').order('product_id');
+    if(r.error) {
+      console.warn('โหลดสินค้าใน store_products ไม่สำเร็จ',r.error);return
     }
-    var catalog=(S.products||[]).map(function(p) {
-      return {product_id:Number(p.id),sku:String(p.sku||('FG-'+p.id)),name:String(p.name||''),stock:Number(p.stock)||0,price:Number(p.price)||0,image_url:safeImageUrl(p.image_url)||null,is_available:true,updated_at:new Date().toISOString()}
-    });if(catalog.length) {
-      var c=await window.fishgrowSupabase.from('store_products').upsert(catalog,{onConflict:'product_id'});if(c.error)console.warn('อัปเดตสินค้าในหน้าร้านไม่สำเร็จ',c.error)
-    }
+    S.products=(r.data||[]).map(function(p){
+      return {id:Number(p.product_id),sku:p.sku||'',name:p.name||'',stock:Number(p.stock)||0,price:Number(p.price)||0,is_available:p.is_available!==false,image_url:p.image_url||'',fish_types:p.fish_types||[],stages:p.stages||[],goals:p.goals||[],pellet_size:p.pellet_size||'',protein_pct:p.protein_pct,description:p.description||'',ingredients:p.ingredients||'',usage_note:p.usage_note||'',storage_note:p.storage_note||''}
+    });
   }
 
 // authMode: เปลี่ยนโหมด User Login, สมัครสมาชิก และ Admin Login
@@ -338,7 +361,7 @@ async function handleAuthSubmit(event) {
 // finishLogin: เตรียมข้อมูลหลัง Login แยกตาม role
 async function finishLogin() {
     remoteStateLoaded=false;USER_CART={};if(AUTH_STATE.profile.role==='admin') {
-      await loadRemoteState();await loadAdminWebOrders();await loadAdminStoreStock();await syncAppState();S.page=S.page.indexOf('user-')===0?'dashboard':S.page
+      await loadRemoteState();await loadAdminStoreProducts();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page
     } else {
       S.page='user';await loadStorefront()
     }

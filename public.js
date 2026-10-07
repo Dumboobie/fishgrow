@@ -13,6 +13,7 @@
     products: [],
     selectedProduct: null,
     cart: JSON.parse(localStorage.getItem('fg_public_cart') || '{}'),
+    compare: JSON.parse(localStorage.getItem('fg_public_compare') || '[]'),
     recommendation: { fish: '', stage: '', goal: '', farm: '' },
     calculator: { count: '', weight: '', rate: '3', price: '' },
     orderCode: ''
@@ -27,6 +28,7 @@
   }).format(Number(value) || 0);
 
   const saveCart = () => localStorage.setItem('fg_public_cart', JSON.stringify(state.cart));
+  const saveCompare = () => localStorage.setItem('fg_public_compare', JSON.stringify(state.compare));
   const cartCount = () => Object.values(state.cart).reduce((sum, n) => sum + Number(n || 0), 0);
   const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * Number(state.cart[p.product_id] || 0), 0);
 
@@ -88,6 +90,7 @@
       '<p class="fg-muted">SKU ' + esc(p.sku) + '</p>' +
       '<div class="fg-product-meta"><span>คงเหลือ ' + money(p.stock) + ' kg</span><strong>฿' + money(p.price) + '<small>/kg</small></strong></div>' +
       (compact ? '' : '<div class="fg-product-actions"><a class="fg-btn fg-btn-light" href="#product/' + p.product_id + '">ดูรายละเอียด</a>' +
+      '<button class="fg-btn fg-btn-light" data-compare="' + p.product_id + '">' + (state.compare.includes(Number(p.product_id)) ? '✓ เทียบแล้ว' : '＋ เปรียบเทียบ') + '</button>' +
       '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button></div>') +
       (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button>' : '') +
       (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' kg</div>' : '') +
@@ -124,7 +127,7 @@
   function products() {
     return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">FISHGROW PRODUCTS</span><h1>สินค้าทั้งหมด</h1><p>อาหารปลาคุณภาพจากทรัพยากรท้องถิ่น เพื่อการเกษตรที่ยั่งยืน</p></div><div class="fg-products-toolbar"><div class="fg-filter-pills"><button class="active">ทั้งหมด</button><button>พร้อมจำหน่าย</button></div><span>' + state.products.length + ' รายการ</span></div><div class="fg-products-grid fg-products-wide">' +
       (state.products.length ? state.products.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ไม่พบสินค้า</div>') +
-      '</div></div></section>';
+      '</div><div class="fg-compare-bar"><span>เลือกไว้ ' + state.compare.length + ' รายการ</span><a class="fg-btn fg-btn-light" href="#compare">เปรียบเทียบสินค้า</a></div></div></section>';
   }
 
   function productDetail(id) {
@@ -134,6 +137,16 @@
     const image = p.image_url ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '">' : '<div class="fg-product-placeholder large">🐟</div>';
     return '<section class="fg-page"><div class="fg-container"><div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div><div class="fg-detail-grid"><div><div class="fg-detail-image">' + image + '</div></div><div class="fg-detail-info"><span class="fg-kicker">AQUACULTURE FEED</span><h1>' + esc(p.name) + '</h1><p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p><div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div><div class="fg-detail-facts"><div><small>SKU</small><b>' + esc(p.sku) + '</b></div><div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div><div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div></div><div class="fg-detail-buy"><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button><a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a></div></div></div>' +
       '<div class="fg-info-grid"><article><h3>รายละเอียดสินค้า</h3><p>ข้อมูลเชิงลึกของผลิตภัณฑ์จะแสดงตามข้อมูลที่ผู้ดูแลบันทึกในระบบสินค้า</p></article><article><h3>วิธีใช้</h3><p>ควรปรับปริมาณอาหารตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน</p><a href="#howto">อ่านวิธีใช้ →</a></article><article><h3>การเก็บรักษา</h3><p>เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดโดยตรง และปิดถุงให้สนิท</p></article></div></div></section>';
+  }
+
+  function compare() {
+    const selected = state.compare.map(id => state.products.find(p => Number(p.product_id) === Number(id))).filter(Boolean);
+    if (!selected.length) {
+      return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><span class="fg-kicker">COMPARE</span><h1>เปรียบเทียบสินค้า</h1><p>เลือกสินค้าอย่างน้อย 1 รายการจากหน้าสินค้า</p></div><a class="fg-btn fg-btn-green" href="#products">ไปเลือกสินค้า</a></div></section>';
+    }
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">COMPARE</span><h1>เปรียบเทียบสินค้า</h1><p>เปรียบเทียบราคา สต็อก และข้อมูลพื้นฐานของสินค้า</p></div><div class="fg-compare-table"><table><thead><tr><th>ข้อมูล</th>' +
+      selected.map(p => '<th><b>' + esc(p.name) + '</b><small>' + esc(p.sku) + '</small></th>').join('') +
+      '</tr></thead><tbody><tr><td>ราคา</td>' + selected.map(p => '<td>฿' + money(p.price) + '/kg</td>').join('') + '</tr><tr><td>สต็อก</td>' + selected.map(p => '<td>' + money(p.stock) + ' kg</td>').join('') + '</tr><tr><td>สถานะ</td>' + selected.map(p => '<td>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</td>').join('') + '</tr><tr><td>การสั่งซื้อ</td>' + selected.map(p => '<td><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></td>').join('') + '</tr></tbody></table></div><button class="fg-btn fg-btn-light" data-clear-compare>ล้างรายการเปรียบเทียบ</button></div></section>';
   }
 
   function recommend() {
@@ -326,6 +339,7 @@
     if (hash.startsWith('product/')) return productDetail(hash.split('/')[1]);
     if (hash === 'home') return home();
     if (hash === 'products') return products();
+    if (hash === 'compare') return compare();
     if (hash === 'recommend') return recommend();
     if (hash === 'calculator') return calculator();
     if (hash === 'howto') return howto();
@@ -373,6 +387,22 @@
   function handleClick(e) {
     const nav = e.target.closest('[data-nav]');
     if (nav) return;
+
+    const compareButton = e.target.closest('[data-compare]');
+    if (compareButton) {
+      const id = Number(compareButton.dataset.compare);
+      state.compare = state.compare.includes(id) ? state.compare.filter(x => x !== id) : (state.compare.length < 3 ? [...state.compare, id] : state.compare);
+      saveCompare();
+      render();
+      return;
+    }
+
+    if (e.target.closest('[data-clear-compare]')) {
+      state.compare = [];
+      saveCompare();
+      render();
+      return;
+    }
 
     const add = e.target.closest('[data-add]');
     if (add) {

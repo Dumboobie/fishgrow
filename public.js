@@ -202,7 +202,115 @@
       return '<div class="fg-cart-line"><div><b>' + esc(p.name) + '</b><small>฿' + money(p.price) + '/kg</small></div><div class="fg-cart-qty"><button data-cart-delta="' + id + ':-1">−</button><b>' + state.cart[id] + '</b><button data-cart-delta="' + id + ':1">+</button></div><strong>฿' + money(p.price * state.cart[id]) + '</strong><button class="fg-remove" data-cart-remove="' + id + '">×</button></div>';
     }).join('');
     return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">SHOPPING CART</span><h1>ตะกร้าสินค้า</h1><p>ตรวจสอบสินค้าและจำนวนก่อนสั่งซื้อ</p></div>' +
-      '<div class="fg-cart-layout"><div class="fg-cart-list">' + (lines || '<div class="fg-empty">ยังไม่มีสินค้าในตะกร้า <a href="#products">ไปเลือกสินค้า</a></div>') + '</div><aside class="fg-summary"><h2>สรุปคำสั่งซื้อ</h2><div><span>สินค้า</span><b>฿' + money(cartTotal()) + '</b></div><div><span>ค่าจัดส่ง</span><b>คำนวณตอนสั่งซื้อ</b></div><hr><div class="total"><span>ยอดรวมสินค้า</span><b>฿' + money(cartTotal()) + '</b></div><a class="fg-btn fg-btn-green fg-full-btn" href="#account">เข้าสู่ระบบเพื่อสั่งซื้อ</a></aside></div></div></section>';
+      '<div class="fg-cart-layout"><div class="fg-cart-list">' + (lines || '<div class="fg-empty">ยังไม่มีสินค้าในตะกร้า <a href="#products">ไปเลือกสินค้า</a></div>') + '</div><aside class="fg-summary"><h2>สรุปคำสั่งซื้อ</h2><div><span>สินค้า</span><b>฿' + money(cartTotal()) + '</b></div><div><span>ค่าจัดส่ง</span><b>คำนวณตอนยืนยัน</b></div><hr><div class="total"><span>ยอดรวมสินค้า</span><b>฿' + money(cartTotal()) + '</b></div>' + (cartCount() ? '<a class="fg-btn fg-btn-green fg-full-btn" href="#checkout">ไปชำระเงิน / สั่งซื้อ</a>' : '<a class="fg-btn fg-btn-light fg-full-btn" href="#products">เลือกสินค้า</a>') + '</aside></div></div></section>';
+  }
+
+  async function checkout() {
+    if (!cartCount()) {
+      location.hash = 'cart';
+      return '<section class="fg-page"><div class="fg-container fg-empty"><h1>ตะกร้ายังไม่มีสินค้า</h1><a class="fg-btn fg-btn-green" href="#products">ไปเลือกสินค้า</a></div></section>';
+    }
+
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) {
+      return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><span class="fg-kicker">CHECKOUT</span><h1>เข้าสู่ระบบก่อนสั่งซื้อ</h1><p>คำสั่งซื้อจะถูกผูกกับบัญชีของคุณ เพื่อให้ติดตามสถานะและประวัติได้อย่างปลอดภัย</p></div><div class="fg-account-card"><a class="fg-btn fg-btn-green fg-full-btn" href="?mode=account">เข้าสู่ระบบ / สมัครสมาชิก</a><a class="fg-btn fg-btn-light fg-full-btn" href="#cart">กลับไปตะกร้า</a></div></div></section>';
+    }
+
+    let profile = {};
+    const profileResult = await supabase.from('profiles').select('full_name,phone').eq('id', user.id).maybeSingle();
+    if (profileResult.data) profile = profileResult.data;
+
+    const lines = Object.keys(state.cart).map(id => {
+      const p = state.products.find(x => String(x.product_id) === String(id));
+      return p ? '<div class="fg-checkout-line"><span>' + esc(p.name) + ' × ' + state.cart[id] + ' kg</span><b>฿' + money(p.price * state.cart[id]) + '</b></div>' : '';
+    }).join('');
+
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">CHECKOUT</span><h1>ยืนยันคำสั่งซื้อ</h1><p>กรอกข้อมูลจัดส่ง เลือกช่องทางชำระเงิน และส่งหลักฐานการชำระเงินถ้ามี</p></div>' +
+      '<form id="checkout-form" class="fg-checkout-layout">' +
+      '<div class="fg-checkout-main"><div class="fg-form-card"><h2>1. ข้อมูลจัดส่ง</h2><div class="fg-form-grid">' +
+      '<label>ชื่อผู้รับ<input name="customer_name" value="' + esc(profile.full_name || '') + '" required></label>' +
+      '<label>เบอร์โทรศัพท์<input name="phone" value="' + esc(profile.phone || '') + '" required></label>' +
+      '<label class="full">ที่อยู่<textarea name="delivery_address" rows="3" required></textarea></label>' +
+      '<label>จังหวัด<input name="province" required></label><label>อำเภอ/เขต<input name="district" required></label>' +
+      '<label>ตำบล/แขวง<input name="subdistrict" required></label><label>รหัสไปรษณีย์<input name="postal_code" inputmode="numeric" pattern="[0-9]{5}" required></label>' +
+      '<label class="full">หมายเหตุ<input name="note" placeholder="เช่น เวลาที่สะดวกให้จัดส่ง"></label>' +
+      '</div></div>' +
+      '<div class="fg-form-card"><h2>2. ช่องทางชำระเงิน</h2><div class="fg-payment-options">' +
+      '<label><input type="radio" name="payment_method" value="promptpay" checked><span><b>QR PromptPay</b><small>ชำระผ่าน QR และแนบหลักฐานได้</small></span></label>' +
+      '<label><input type="radio" name="payment_method" value="bank_transfer"><span><b>โอนเงินผ่านธนาคาร</b><small>แนบหลักฐานการโอนได้</small></span></label>' +
+      '<label><input type="radio" name="payment_method" value="cod"><span><b>เก็บเงินปลายทาง</b><small>ใช้ได้เมื่อผู้ดูแลเปิดให้บริการ</small></span></label>' +
+      '</div><div class="fg-payment-note"><b>หมายเหตุการชำระเงิน</b><p>เลขบัญชีหรือ QR สำหรับชำระเงินควรกำหนดในข้อมูลร้านค้าจริงก่อนเปิดใช้งานรับชำระเงิน</p></div>' +
+      '<label>หลักฐานการชำระเงิน (ถ้ามี)<input id="payment-proof" name="payment_proof" type="file" accept="image/*,.pdf"></label><small class="fg-muted">รองรับ JPG, PNG หรือ PDF ขนาดไม่เกิน 6 MB</small></div>' +
+      '<div class="fg-form-card"><h2>3. ตรวจสอบและยืนยัน</h2><p class="fg-muted">เมื่อยืนยัน ระบบจะตรวจสอบสต็อกและตัดสินค้าออกจากสต็อกแบบรายการเดียว</p><button class="fg-btn fg-btn-green fg-full-btn" type="submit">ยืนยันคำสั่งซื้อ ฿' + money(cartTotal()) + '</button><p id="checkout-status" class="fg-muted"></p></div></div>' +
+      '<aside class="fg-summary"><h2>สรุปคำสั่งซื้อ</h2>' + lines + '<hr><div class="total"><span>ยอดสินค้า</span><b>฿' + money(cartTotal()) + '</b></div><small>ค่าจัดส่งจะแจ้งตามพื้นที่/เงื่อนไขของร้าน</small></aside>' +
+      '</form></div></section>';
+  }
+
+  async function submitCheckout(form) {
+    const status = $('#checkout-status');
+    const proof = $('#payment-proof')?.files?.[0];
+    if (proof && proof.size > 6 * 1024 * 1024) {
+      status.textContent = 'ไฟล์หลักฐานมีขนาดเกิน 6 MB';
+      return;
+    }
+
+    status.textContent = 'กำลังตรวจสอบข้อมูลและสต็อก...';
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) {
+      status.textContent = 'กรุณาเข้าสู่ระบบใหม่';
+      return;
+    }
+
+    let proofPath = null;
+    if (proof) {
+      const safeName = proof.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      proofPath = user.id + '/' + Date.now() + '-' + crypto.randomUUID() + '-' + safeName;
+      const upload = await supabase.storage.from('payment-proofs').upload(proofPath, proof, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: proof.type || 'application/octet-stream'
+      });
+      if (upload.error) {
+        status.textContent = 'อัปโหลดหลักฐานไม่สำเร็จ: ' + upload.error.message;
+        return;
+      }
+    }
+
+    const values = Object.fromEntries(new FormData(form).entries());
+    const items = Object.entries(state.cart).map(([id, quantity]) => ({
+      product_id: Number(id),
+      quantity: Number(quantity)
+    }));
+
+    const { data: orderId, error } = await supabase.rpc('place_store_order', {
+      p_items: items,
+      p_customer_name: values.customer_name,
+      p_phone: values.phone,
+      p_delivery_address: values.delivery_address,
+      p_province: values.province,
+      p_district: values.district,
+      p_subdistrict: values.subdistrict,
+      p_postal_code: values.postal_code,
+      p_note: values.note || '',
+      p_payment_method: values.payment_method,
+      p_payment_proof_path: proofPath
+    });
+
+    if (error) {
+      if (proofPath) await supabase.storage.from('payment-proofs').remove([proofPath]);
+      status.textContent = 'สั่งซื้อไม่สำเร็จ: ' + (error.message || 'กรุณาลองใหม่');
+      return;
+    }
+
+    state.cart = {};
+    saveCart();
+    location.hash = 'order-success/' + orderId;
+  }
+
+  function orderSuccess(id) {
+    return '<section class="fg-page"><div class="fg-container fg-success"><div class="fg-success-icon">✓</div><span class="fg-kicker">ORDER CONFIRMED</span><h1>สั่งซื้อเรียบร้อยแล้ว</h1><p>หมายเลขคำสั่งซื้อของคุณคือ</p><strong class="fg-order-number">FGW-' + String(id).padStart(6, '0') + '</strong><p class="fg-muted">ระบบบันทึกคำสั่งซื้อและตัดสต็อกเรียบร้อยแล้ว</p><div class="fg-hero-actions"><a class="fg-btn fg-btn-green" href="#tracking">ติดตามคำสั่งซื้อ</a><a class="fg-btn fg-btn-light" href="#products">กลับไปเลือกสินค้า</a></div></div></section>';
   }
 
   function account() {
@@ -227,6 +335,8 @@
     if (hash === 'tracking') return tracking();
     if (hash === 'contact') return contact();
     if (hash === 'cart') return cart();
+    if (hash === 'checkout') return checkout();
+    if (hash.startsWith('order-success/')) return orderSuccess(hash.split('/')[1]);
     if (hash === 'account') return account();
     if (hash === 'privacy') return privacy();
     if (hash === 'terms' || hash === 'returns') return privacy();
@@ -331,6 +441,10 @@
     if (e.target.id === 'contact-form') {
       e.preventDefault();
       submitContact(e.target);
+    }
+    if (e.target.id === 'checkout-form') {
+      e.preventDefault();
+      submitCheckout(e.target);
     }
   }
 

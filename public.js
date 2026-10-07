@@ -44,13 +44,13 @@
     videoPosterUrl: '',
     youtubeUrl: '',
     heroVideoUrl: 'assets/hero-bg.mp4',
-    videoUrl: '/assets/video1.mp4',
+    videoUrl: 'assets/video1.mp4',
     gallery: [
-      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '/pic1.jpg?v=4' },
-      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '/pic2.jpg?v=4' },
-      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: '/pic3.jpg?v=4' },
-      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: '/pic4.jpg?v=4' },
-      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: '/pic5.jpg?v=4' }
+      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: 'pic1.jpg?v=4' },
+      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: 'pic2.jpg?v=4' },
+      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: 'pic3.jpg?v=4' },
+      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: 'pic4.jpg?v=4' },
+      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: 'pic5.jpg?v=4' }
     ]
   };
 

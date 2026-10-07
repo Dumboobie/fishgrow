@@ -11,6 +11,9 @@
   const state = {
     page: 'home',
     products: [],
+    settings: null,
+    recommendationRules: [],
+    articles: [],
     selectedProduct: null,
     cart: JSON.parse(localStorage.getItem('fg_public_cart') || '{}'),
     compare: JSON.parse(localStorage.getItem('fg_public_compare') || '[]'),
@@ -34,13 +37,16 @@
 
   async function loadProducts() {
     if (!supabase) return;
-    const { data, error } = await supabase
-      .from('store_products')
-      .select('product_id,sku,name,stock,price,is_available,image_url,updated_at')
-      .eq('is_available', true)
-      .order('product_id');
-
-    if (!error) state.products = data || [];
+    const [p, s, a, r] = await Promise.all([
+      supabase.from('store_products').select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').eq('is_available', true).order('product_id'),
+      supabase.from('store_settings').select('store_name,promptpay_name,promptpay_number,bank_name,bank_account_name,bank_account_number,cod_enabled,shipping_note,contact_phone,contact_line,contact_email').eq('id', 1).maybeSingle(),
+      supabase.from('knowledge_articles').select('id,slug,title,excerpt,content,category,cover_image_url,published_at').eq('is_published', true).order('published_at', { ascending: false }),
+      supabase.from('store_product_recommendation_rules').select('product_id,fish_type,stage,goal,farm_size,priority,reason').eq('is_active', true).order('priority', { ascending: false })
+    ]);
+    if (!p.error) state.products = p.data || [];
+    if (!s.error) state.settings = s.data || null;
+    if (!a.error) state.articles = a.data || [];
+    if (!r.error) state.recommendationRules = r.data || [];
   }
 
   function navItem(page, label) {
@@ -159,7 +165,9 @@
       farm: [['ขนาดเล็ก','small'],['ขนาดกลาง','medium'],['ขนาดใหญ่','large']]
     };
     if (step === 5) {
-      const p = state.products[0];
+      const matches = (state.recommendationRules || []).map(rule => ({ rule, score: Number(rule.priority || 0) + (rule.fish_type === r.fish ? 40 : 0) + (rule.stage === r.stage ? 30 : 0) + (rule.goal === r.goal ? 20 : 0) + (rule.farm_size === r.farm ? 10 : 0) })).filter(x => x.rule.fish_type === r.fish).sort((a,b) => b.score - a.score);
+      const match = matches[0];
+      const p = match ? state.products.find(x => Number(x.product_id) === Number(match.rule.product_id)) : null;
       return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลที่คุณเลือก</p></div><div class="fg-result-card">' +
         '<div><span class="fg-result-icon">🎯</span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(r.goal) + '</span><span>ฟาร์ม: ' + esc(r.farm) + '</span></div></div>' +
         (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') +

@@ -18,7 +18,7 @@
     cart: JSON.parse(localStorage.getItem('fg_public_cart') || '{}'),
     compare: JSON.parse(localStorage.getItem('fg_public_compare') || '[]'),
     recommendation: { fish: '', stage: '', goal: '', farm: '' },
-    calculator: { count: '', weight: '', rate: '3', price: '' },
+    calculator: { count: '', weight: '', rate: '', price: '' },
     orderCode: ''
   };
 
@@ -142,7 +142,7 @@
     state.selectedProduct = p;
     const image = p.image_url ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '">' : '<div class="fg-product-placeholder large">🐟</div>';
     return '<section class="fg-page"><div class="fg-container"><div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div><div class="fg-detail-grid"><div><div class="fg-detail-image">' + image + '</div></div><div class="fg-detail-info"><span class="fg-kicker">AQUACULTURE FEED</span><h1>' + esc(p.name) + '</h1><p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p><div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div><div class="fg-detail-facts"><div><small>SKU</small><b>' + esc(p.sku) + '</b></div><div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div><div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div></div><div class="fg-detail-buy"><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button><a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a></div></div></div>' +
-      '<div class="fg-info-grid"><article><h3>รายละเอียดสินค้า</h3><p>ข้อมูลเชิงลึกของผลิตภัณฑ์จะแสดงตามข้อมูลที่ผู้ดูแลบันทึกในระบบสินค้า</p></article><article><h3>วิธีใช้</h3><p>ควรปรับปริมาณอาหารตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน</p><a href="#howto">อ่านวิธีใช้ →</a></article><article><h3>การเก็บรักษา</h3><p>เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดโดยตรง และปิดถุงให้สนิท</p></article></div></div></section>';
+      '<div class="fg-info-grid"><article><h3>รายละเอียดสินค้า</h3><p>' + esc(p.description || 'ยังไม่ได้ระบุรายละเอียดสินค้า')</p>' + (p.protein_pct != null ? '<small>โปรตีน ' + money(p.protein_pct) + '%</small>' : '') + (p.pellet_size ? '<small>ขนาดเม็ด ' + esc(p.pellet_size) + '</small>' : '') + '</article><article><h3>ส่วนประกอบ</h3><p>' + esc(p.ingredients || 'ยังไม่ได้ระบุส่วนประกอบ')</p></article><article><h3>วิธีใช้และการเก็บรักษา</h3><p>' + esc(p.usage_note || 'ควรปรับตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน')</p><p>' + esc(p.storage_note || 'เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดและความชื้น')</p><a href="#howto">อ่านวิธีใช้ →</a></article></div></div></section>';
   }
 
   function compare() {
@@ -180,14 +180,35 @@
       '</div></div></div></section>';
   }
 
+  function feedingRateForWhiteSeabass(weight) {
+    const w = Number(weight);
+    if (!(w > 0)) return null;
+    if (w <= 20) return { min: 2.0, max: 4.0, label: '2.0–4.0%', meals: '2–3 มื้อ/วัน' };
+    if (w <= 100) return { min: 1.5, max: 2.0, label: '1.5–2.0%', meals: '2 มื้อ/วัน' };
+    if (w <= 200) return { min: 1.2, max: 1.5, label: '1.2–1.5%', meals: '1–2 มื้อ/วัน' };
+    if (w <= 300) return { min: 1.0, max: 1.2, label: '1.0–1.2%', meals: '1 มื้อ/วัน' };
+    return { min: 0.8, max: 1.0, label: '0.8–1.0%', meals: '1 มื้อ/วัน' };
+  }
+
   function calculator() {
     const c = state.calculator;
-    const count = Number(c.count), weight = Number(c.weight), rate = Number(c.rate), price = Number(c.price || 0);
+    const count = Number(c.count), weight = Number(c.weight), price = Number(c.price || 0);
+    const source = feedingRateForWhiteSeabass(weight);
+    const entered = Number(c.rate);
+    const rate = entered > 0 ? entered : (source ? (source.min + source.max) / 2 : 0);
     const biomass = count > 0 && weight > 0 ? count * weight / 1000 : 0;
-    const daily = biomass * rate / 100;
-    const monthly = daily * 30;
-    const cost = monthly * price;
-    return '<section class="fg-page"><div class="fg-container fg-calc"><div class="fg-page-head"><span class="fg-kicker">FEED CALCULATOR</span><h1>คำนวณปริมาณอาหาร</h1><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p></div><div class="fg-calc-grid"><form class="fg-calc-form" id="calc-form"><label>จำนวนปลา<input name="count" type="number" min="1" step="1" value="' + esc(c.count) + '" placeholder="เช่น 1000"></label><label>น้ำหนักเฉลี่ย<input name="weight" type="number" min="0" step="0.1" value="' + esc(c.weight) + '" placeholder="กรัม/ตัว"></label><label>อัตราการให้อาหาร (%)<input name="rate" type="number" min="0.1" max="20" step="0.1" value="' + esc(c.rate) + '"></label><label>ราคาอาหาร (บาท/kg)<input name="price" type="number" min="0" step="0.01" value="' + esc(c.price) + '" placeholder="ใส่เพื่อคำนวณค่าใช้จ่าย"></label><button class="fg-btn fg-btn-green" type="submit">คำนวณ</button></form><div class="fg-calc-result"><h2>ผลการคำนวณ</h2><div><small>น้ำหนักปลารวม</small><b>' + money(biomass) + ' kg</b></div><div><small>ปริมาณอาหารต่อวัน</small><b>' + money(daily) + ' kg/วัน</b></div><div><small>ปริมาณอาหารต่อเดือน</small><b>' + money(monthly) + ' kg/เดือน</b></div><div><small>ค่าอาหารโดยประมาณ</small><b>' + (price > 0 ? '฿' + money(cost) + '/เดือน' : 'กรอกราคาอาหารเพื่อคำนวณ') + '</b></div></div></div><div class="fg-note">* สูตรคำนวณ: น้ำหนักปลารวม = จำนวนปลา × น้ำหนักเฉลี่ย ÷ 1,000 และอาหารต่อวัน = น้ำหนักปลารวม × อัตราการให้อาหาร ÷ 100 ผลลัพธ์เป็นค่าประมาณ ควรปรับตามชนิดปลา อายุปลา คุณภาพน้ำ และพฤติกรรมการกิน</div></div></section>';
+    const daily = biomass * rate / 100, monthly = daily * 30, cost = monthly * price;
+    return '<section class="fg-page"><div class="fg-container fg-calc"><div class="fg-page-head"><span class="fg-kicker">FEED CALCULATOR</span><h1>คำนวณปริมาณอาหารปลากะพงขาว</h1><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหารตามช่วงน้ำหนัก</p></div><div class="fg-calc-grid"><form class="fg-calc-form" id="calc-form">' +
+      '<label>จำนวนปลา<input name="count" type="number" min="1" step="1" value="' + esc(c.count) + '" placeholder="เช่น 1000" required></label>' +
+      '<label>น้ำหนักเฉลี่ย<input name="weight" type="number" min="0.1" step="0.1" value="' + esc(c.weight) + '" placeholder="กรัม/ตัว" required></label>' +
+      '<label>อัตราการให้อาหาร (%)<input name="rate" type="number" min="0.1" max="10" step="0.1" value="' + esc(c.rate) + '" placeholder="' + (source ? source.label : 'ระบบจะแนะนำตามน้ำหนักปลา') + '"></label>' +
+      '<label>ราคาอาหาร (บาท/kg)<input name="price" type="number" min="0" step="0.01" value="' + esc(c.price) + '" placeholder="ใส่เพื่อคำนวณค่าใช้จ่าย"></label>' +
+      (source ? '<div class="fg-note">อัตราอ้างอิง: <b>' + source.label + '</b> · ความถี่ประมาณ <b>' + source.meals + '</b><br>หากไม่กรอกอัตรา ระบบใช้ค่ากลางของช่วงเพื่อประมาณการ</div>' : '') +
+      '<button class="fg-btn fg-btn-green" type="submit">คำนวณ</button></form><div class="fg-calc-result"><h2>ผลการคำนวณ</h2>' +
+      '<div><small>น้ำหนักปลารวม</small><b>' + money(biomass) + ' kg</b></div><div><small>อัตราที่ใช้คำนวณ</small><b>' + (rate ? money(rate) + '%' : '-') + '</b></div>' +
+      '<div><small>ปริมาณอาหารต่อวัน</small><b>' + money(daily) + ' kg/วัน</b></div><div><small>ปริมาณอาหารต่อเดือน</small><b>' + money(monthly) + ' kg/เดือน</b></div>' +
+      '<div><small>ค่าอาหารโดยประมาณ</small><b>' + (price > 0 ? '฿' + money(cost) + '/เดือน' : 'กรอกราคาอาหารเพื่อคำนวณ') + '</b></div></div></div>' +
+      '<div class="fg-note">สูตร: น้ำหนักปลารวม = จำนวนปลา × น้ำหนักเฉลี่ย ÷ 1,000 และอาหารต่อวัน = น้ำหนักปลารวม × อัตราการให้อาหาร ÷ 100 โดยอ้างอิงตารางของกรมประมง ควรปรับตามสภาพปลา คุณภาพน้ำ และการกินจริง</div></div></section>';
   }
 
   function howto() {

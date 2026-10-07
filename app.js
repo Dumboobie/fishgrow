@@ -273,7 +273,15 @@ function productModal(id){
   })}
 
 // materialModal: เปิดฟอร์มวัตถุดิบ
-function materialModal(id){var m=S.materials.find(function(x){return x.id===id})||{name:'',category:'วัตถุดิบหลัก',stock:0,price:0};modal(id?'แก้ไขวัตถุดิบ':'เพิ่มวัตถุดิบ','<div class="form-grid">'+field('ชื่อวัตถุดิบ','mn',m.name)+field('ประเภท','mc',m.category)+field('คงเหลือ kg','mk',m.stock)+field('ราคา/kg','mp',m.price)+'</div>',function(){m.id=m.id||Date.now();m.name=document.getElementById('mn').value;m.category=document.getElementById('mc').value;m.stock=+document.getElementById('mk').value;m.price=+document.getElementById('mp').value;if(!id)S.materials.push(m)})}
+function materialModal(id){
+  var m=S.materials.find(function(x){return Number(x.id)===Number(id)})||{id:null,name:'',category:'วัตถุดิบหลัก',stock:0,price:0};
+  modal(id?'แก้ไขวัตถุดิบ':'เพิ่มวัตถุดิบ','<div class="form-grid">'+field('ชื่อวัตถุดิบ','mn',m.name)+field('ประเภท','mc',m.category)+field('คงเหลือ kg','mk',m.stock)+field('ราคา/kg','mp',m.price)+'</div>',async function(){
+    var name=document.getElementById('mn').value.trim(),category=document.getElementById('mc').value.trim()||'วัตถุดิบหลัก',stock=Number(document.getElementById('mk').value),price=Number(document.getElementById('mp').value);
+    if(!name)throw new Error('กรุณาระบุชื่อวัตถุดิบ');if(!Number.isFinite(stock)||stock<0)throw new Error('คงเหลือต้องเป็น 0 ขึ้นไป');if(!Number.isFinite(price)||price<0)throw new Error('ราคาต้องเป็น 0 ขึ้นไป');
+    var payload={name:name,category:category,stock:stock,price:price,unit:'kg',is_active:true,updated_at:new Date().toISOString()};if(id)payload.id=Number(id);
+    var r=await window.fishgrowSupabase.from('store_materials').upsert(payload,{onConflict:'id'}).select('*').single();if(r.error)throw r.error;await loadAdminBusinessData();
+  })
+}
 
 // customerModal: เปิดฟอร์มลูกค้า
 function customerModal(){modal('เพิ่มลูกค้า','<div class="form-grid">'+field('ชื่อลูกค้า','cn','')+field('พื้นที่','ca','สมุทรสาคร')+field('จำนวนออเดอร์','co',0)+'</div>',function(){S.customers.push({id:Date.now(),name:document.getElementById('cn').value,area:document.getElementById('ca').value,orders:+document.getElementById('co').value})})}
@@ -282,7 +290,11 @@ function customerModal(){modal('เพิ่มลูกค้า','<div class="
 function orderModal(){modal('สร้างคำสั่งซื้อ','<div class="form-grid">'+field('เลขที่','oi','FG-2026-'+String(S.orders.length+1).padStart(3,'0'))+field('ลูกค้า','oc',S.customers[0].name)+field('วันที่','od','05/10/2569')+field('ยอดรวม','oa',0)+'</div>',function(){S.orders.unshift({id:document.getElementById('oi').value,customer:document.getElementById('oc').value,date:document.getElementById('od').value,amount:+document.getElementById('oa').value,status:'รอชำระ'})})}
 
 // expenseModal: เปิดฟอร์มค่าใช้จ่าย
-function expenseModal(){modal('บันทึกค่าใช้จ่าย','<div class="form-grid">'+field('วันที่','ed','05/10/2569')+field('ประเภท','et','วัตถุดิบ')+field('รายละเอียด','ex','')+field('จำนวนเงิน','ea',0)+'</div>',function(){S.expenses.unshift({date:document.getElementById('ed').value,type:document.getElementById('et').value,detail:document.getElementById('ex').value,amount:+document.getElementById('ea').value})})}
+function expenseModal(){modal('บันทึกค่าใช้จ่าย','<div class="form-grid">'+field('วันที่','ed',new Date().toISOString().slice(0,10))+field('ประเภท','et','วัตถุดิบ')+field('รายละเอียด','ex','')+field('จำนวนเงิน','ea',0)+'</div>',async function(){
+  var date=document.getElementById('ed').value,type=document.getElementById('et').value.trim()||'ทั่วไป',detail=document.getElementById('ex').value.trim(),amount=Number(document.getElementById('ea').value);
+  if(!date)throw new Error('กรุณาระบุวันที่');if(!Number.isFinite(amount)||amount<0)throw new Error('จำนวนเงินต้องเป็น 0 ขึ้นไป');
+  var r=await window.fishgrowSupabase.from('store_expenses').insert({expense_date:date,category:type,detail:detail,amount:amount}).select('*').single();if(r.error)throw r.error;await loadAdminBusinessData();
+})}
 
 // recipeModal: เปิดฟอร์มสูตรอาหาร
 function recipeModal(){var products=S.products||[],materials=S.materials||[];if(!products.length||!materials.length){toast('กรุณาเพิ่มสินค้าและวัตถุดิบก่อนสร้างสูตร');return}var productOptions=products.map(function(p){return '<option value="'+Number(p.id)+'">'+esc(p.name)+'</option>'}).join(''),rows=materials.map(function(m,i){return '<label class="recipe-material"><span><input type="checkbox" id="rm'+i+'"> '+esc(m.name)+' <small>฿'+money(m.price)+'/kg</small></span><input type="number" id="rq'+i+'" min="0.01" step="0.01" value="1" aria-label="ปริมาณ '+esc(m.name)+' kg"><small>kg/Batch</small></label>'}).join('');modal('สร้างสูตรอาหาร','<div class="form-grid">'+field('ชื่อสูตร','rn','สูตรใหม่')+'<div class="field"><label>สินค้าสำเร็จรูป</label><select id="rp">'+productOptions+'</select></div>'+field('ผลผลิตต่อ Batch (kg)','ry',100)+'</div><div class="field" style="margin-top:14px"><label>เลือกวัตถุดิบและกำหนดปริมาณต่อ Batch</label><div class="recipe-materials">'+rows+'</div></div>',function(){var name=document.getElementById('rn').value.trim(),productId=Number(document.getElementById('rp').value),yieldKg=Number(document.getElementById('ry').value),items=[];if(!name)throw new Error('กรุณาระบุชื่อสูตร');if(!yieldKg||yieldKg<=0)throw new Error('ผลผลิตต่อ Batch ต้องมากกว่า 0');materials.forEach(function(m,i){var checked=document.getElementById('rm'+i).checked,quantity=Number(document.getElementById('rq'+i).value);if(checked){if(!quantity||quantity<=0)throw new Error('ปริมาณวัตถุดิบต้องมากกว่า 0');items.push([m.name,quantity,Number(m.price)||0])}});if(!items.length)throw new Error('เลือกวัตถุดิบอย่างน้อย 1 รายการ');S.recipes.push({id:Date.now(),name:name,yieldKg:yieldKg,productId:productId,items:items})})}
@@ -301,6 +313,14 @@ async function hydrateProfile(user) {
     var r=await window.fishgrowSupabase.from('profiles').select('id,full_name,email,phone,role').eq('id',user.id).maybeSingle();if(r.error)throw r.error;if(!r.data)throw new Error('ไม่พบข้อมูลโปรไฟล์ของบัญชีนี้');AUTH_STATE.profile=r.data;currentUser=user
   }
 
+// loadAdminBusinessData: โหลดวัตถุดิบ สูตรอาหาร การผลิต และค่าใช้จ่ายจากตารางจริง
+async function loadAdminBusinessData() {
+  if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;
+  var m=await window.fishgrowSupabase.from('store_materials').select('*').eq('is_active',true).order('id');
+  var e=await window.fishgrowSupabase.from('store_expenses').select('*').order('expense_date',{ascending:false}).order('id',{ascending:false});
+  if(m.error)console.warn('โหลดวัตถุดิบไม่สำเร็จ',m.error);else S.materials=(m.data||[]).map(function(x){return {id:Number(x.id),name:x.name,category:x.category,stock:Number(x.stock)||0,price:Number(x.price)||0}});
+  if(e.error)console.warn('โหลดค่าใช้จ่ายไม่สำเร็จ',e.error);else S.expenses=(e.data||[]).map(function(x){return {id:Number(x.id),date:x.expense_date,type:x.category,detail:x.detail,amount:Number(x.amount)||0}});
+}
 // loadRemoteState: โหลดข้อมูลธุรกิจ Admin จาก Supabase
 async function loadRemoteState() {
     if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;var r=await window.fishgrowSupabase.from('app_state').select('data').eq('id',1).maybeSingle();if(r.error) {
@@ -361,7 +381,7 @@ async function handleAuthSubmit(event) {
 // finishLogin: เตรียมข้อมูลหลัง Login แยกตาม role
 async function finishLogin() {
     remoteStateLoaded=false;USER_CART={};if(AUTH_STATE.profile.role==='admin') {
-      await loadRemoteState();await loadAdminStoreProducts();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page
+      await loadRemoteState();await loadAdminStoreProducts();await loadAdminBusinessData();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page
     } else {
       S.page='user';await loadStorefront()
     }

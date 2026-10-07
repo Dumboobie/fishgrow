@@ -26,7 +26,11 @@ function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;
 function head(t,d,a){return '<div class="page-head"><div><h2>'+t+'</h2><p>'+d+'</p></div>'+ (a||'')+'</div>'}
 
 // layout: สร้าง layout หลักของ Admin
-function layout(c){if(!currentUser||!AUTH_STATE.profile)return renderAuth();if(AUTH_STATE.profile.role!=='admin')return userLayout(userPage());document.getElementById('app').innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="nav"><div style="font-size:11px;opacity:.5;padding:8px">เมนูหลัก</div>'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main"><div class="topbar"><span>FISHGROW / ระบบจัดการธุรกิจ</span><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'}
+function layout(c){
+  if(!currentUser||!AUTH_STATE.profile)return renderAuth();
+  if(AUTH_STATE.profile.role!=='admin')return userLayout(userPage());
+  document.getElementById('app').innerHTML='<div class="app fg-admin-app"><aside class="sidebar fg-admin-sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="fg-admin-label">ADMIN CONSOLE</div><div class="nav">'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main fg-admin-main"><div class="topbar fg-admin-topbar"><div><span>FISHGROW / ระบบจัดการธุรกิจ</span><small>จัดการร้านค้า การผลิต และข้อมูลการขาย</small></div><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'
+}
 // orderStatusClass: แปลงสถานะคำสั่งซื้อเป็น CSS class
 function orderStatusClass(status){return status==='รอชำระ'||status==='รอรับคำสั่งซื้อ'||status==='pending'?'warn':status==='ยกเลิก'||status==='cancelled'?'muted':status==='กำลังจัดเตรียม'||status==='จัดส่งแล้ว'||status==='processing'||status==='shipped'?'info':''}
 // ordersTable: สร้างตารางคำสั่งซื้อ และเปิดให้ Admin เปลี่ยนสถานะได้
@@ -604,9 +608,9 @@ async function navigateUser(page) {
 
 // userLayout: สร้าง layout และเมนูของหน้า User
 function userLayout(c) {
-    var links=[['shop','▣','ร้านค้า'],['orders','🛒','คำสั่งซื้อของฉัน'],['account','♙','บัญชีของฉัน']];document.getElementById('app').innerHTML='<div class="app user-app"><aside class="sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED STORE</small></div></div><div class="nav"><div style="font-size:11px;opacity:.5;padding:8px">เมนูผู้ใช้</div>'+links.map(function(m) {
-      return '<button class="'+((S.page==='user-'+m[0]||(m[0]==='shop'&&S.page==='user'))?'active':'')+'" data-page="'+m[0]+'" onclick="navigateUser(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+(m[0]==='shop'&&cartCount()?' ('+cartCount()+')':'')+'</button>'
-    }).join('')+'</div></aside><main class="main"><div class="topbar"><span>FISHGROW / ร้านค้า</span><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="toast" class="toast"></div></div>'
+    var links=[['shop','ร้านค้า'],['orders','คำสั่งซื้อของฉัน'],['account','บัญชีของฉัน']];document.getElementById('app').innerHTML='<div class="fg-user-shell"><header class="fg-header fg-user-header"><div class="fg-container fg-user-nav"><a class="fg-logo" href="#" onclick="navigateUser(\'shop\');return false">Fish<span>Grow</span></a><nav class="fg-user-links">'+links.map(function(m) {
+      return '<button class="fg-user-link '+((S.page==='user-'+m[0]||(m[0]==='shop'&&S.page==='user'))?'active':'')+'" data-page="'+m[0]+'" onclick="navigateUser(this.dataset.page)">'+m[1]+(m[0]==='shop'&&cartCount()?' <b>'+cartCount()+'</b>':'')+'</button>'
+    }).join('')+'</nav><div class="fg-user-actions"><span class="fg-user-name">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="fg-btn fg-btn-green" onclick="signOutUser()">ออกจากระบบ</button></div></div></header><main class="fg-user-main"><div class="fg-container">'+c+'</div></main><div id="toast" class="toast"></div></div>'
   }
 
 // showStartupError: แสดงหน้าข้อผิดพลาดเมื่อเริ่มระบบไม่ได้

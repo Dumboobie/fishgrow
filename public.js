@@ -46,11 +46,11 @@
     heroVideoUrl: 'assets/hero-bg.mp4',
     videoUrl: '/assets/video1.mp4',
     gallery: [
-      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: 'assets/pic1.jpg' },
-      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: 'assets/pic2.jpg' },
-      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: 'assets/pic3.jpg' },
-      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: 'assets/pic4.jpg' },
-      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: 'assets/pic5.jpg' }
+      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '/assets/pic1.jpg' },
+      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '/assets/pic2.jpg' },
+      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: '/assets/pic3.jpg' },
+      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: '/assets/pic4.jpg' },
+      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: '/assets/pic5.jpg' }
     ]
   };
 

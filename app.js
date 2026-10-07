@@ -429,7 +429,8 @@ async function handleAuthSubmit(event) {
 // finishLogin: เตรียมข้อมูลหลัง Login แยกตาม role
 async function finishLogin() {
   USER_CART={};
-  if(AUTH_STATE.profile.role==='admin') {await loadAdminStoreProducts();await loadAdminBusinessData();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page} else {S.page='user';await loadStorefront()}
+  if(AUTH_STATE.profile.role==='admin') {await loadAdminStoreProducts();await loadAdminBusinessData();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page}
+  else {window.location.replace('/#home');return}
   render()
 }
 

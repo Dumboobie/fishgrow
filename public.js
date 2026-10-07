@@ -40,7 +40,7 @@
   // Keep these paths local so Vercel serves the exact files shipped with the site.
   const ABOUT_MEDIA = {
     heroImageUrl: 'pic6.jpg?v=1',
-    storyImageUrl: '',
+    storyImageUrl: 'assets/pic7.jpg?v=1',
     videoPosterUrl: '',
     youtubeUrl: '',
     heroVideoUrl: 'assets/hero-bg.mp4',

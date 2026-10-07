@@ -503,8 +503,13 @@ window.addEventListener('unhandledrejection',function(event) {
   });
 
 // render: เลือกหน้าที่ต้องแสดงตาม role และ S.page
-function render() {
-    if(AUTH_STATE.profile&&AUTH_STATE.profile.role==='admin')load();if(!currentUser||!AUTH_STATE.profile)return renderAuth();var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings};if(AUTH_STATE.profile.role!=='admin')return layout(userPage());if(!p[S.page])S.page='dashboard';layout(p[S.page]())
+async function render() {
+    if(AUTH_STATE.profile&&AUTH_STATE.profile.role==='admin')load();
+    if(!currentUser||!AUTH_STATE.profile)return renderAuth();
+    var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings};
+    if(AUTH_STATE.profile.role!=='admin')return layout(userPage());
+    if(!p[S.page])S.page='dashboard';
+    layout(await p[S.page]());
   }
 
 initializeAuth();

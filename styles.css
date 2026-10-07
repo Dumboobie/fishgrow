@@ -685,3 +685,7 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
 /* Slightly lift the hero content */
 .fg-hero-content{transform:translateY(-24px);}
 @media(max-width:720px){.fg-hero-content{transform:translateY(-14px);}}
+
+/* Keep Farm Tools heading on one line */
+.fg-farm-tools h2{font-size:clamp(28px,3vw,42px);white-space:nowrap;}
+@media(max-width:720px){.fg-farm-tools h2{font-size:28px;white-space:normal;}}

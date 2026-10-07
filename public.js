@@ -44,7 +44,7 @@
     videoPosterUrl: '',
     youtubeUrl: '',
     heroVideoUrl: 'assets/hero-bg.mp4',
-    videoUrl: 'assets/feeding-fish.mp4',
+    videoUrl: '/assets/video1.mp4',
     gallery: [
       { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },
       { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '' },
@@ -69,6 +69,31 @@
       return '<div class="fg-video-frame"><video controls preload="metadata"' + (ABOUT_MEDIA.videoPosterUrl ? ' poster="' + esc(ABOUT_MEDIA.videoPosterUrl) + '"' : '') + '><source src="' + esc(ABOUT_MEDIA.videoUrl) + '" type="video/mp4">เบราว์เซอร์นี้ไม่รองรับวิดีโอ MP4</video></div>';
     }
     return '<div class="fg-video-frame fg-video-placeholder" data-about-video>' + aboutMediaPlaceholder('วิดีโอแนะนำ FISHGROW', 'รองรับ YouTube หรือ MP4 เมื่อมีวิดีโอจริง') + '<button class="fg-media-play" type="button" data-media-play aria-label="เปิดวิดีโอแนะนำ FISHGROW">▶</button></div>';
+  }
+
+  function heroVideo() {
+    if (!ABOUT_MEDIA.videoUrl) {
+      return '<div class="fg-video-frame fg-video-placeholder">' +
+        aboutMediaPlaceholder('วิดีโอแนะนำ FISHGROW', 'ยังไม่มีไฟล์วิดีโอ') +
+        '</div>';
+    }
+
+    const videoUrl = esc(ABOUT_MEDIA.videoUrl);
+    const poster = ABOUT_MEDIA.videoPosterUrl
+      ? ' poster="' + esc(ABOUT_MEDIA.videoPosterUrl) + '"'
+      : '';
+
+    return '<div class="fg-video-frame fg-hero-video">' +
+      '<video autoplay muted loop playsinline preload="auto" controls' + poster +
+      ' aria-label="วิดีโอแนะนำ FISHGROW" data-hero-video>' +
+      '<source src="' + videoUrl + '" type="video/mp4">' +
+      'เบราว์เซอร์นี้ไม่รองรับวิดีโอ MP4' +
+      '</video>' +
+      '<div class="fg-video-error" data-hero-video-error hidden>' +
+      '<strong>ไม่สามารถโหลดวิดีโอได้</strong>' +
+      '<span>ตรวจสอบไฟล์ video1.mp4 หรือการ deploy บน Vercel</span>' +
+      '</div>' +
+      '</div>';
   }
 
   async function loadProducts() {
@@ -128,6 +153,29 @@
     }
 
     console.info('FISHGROW: loaded products:', state.products.length);
+  }
+
+  function setupHeroVideo() {
+    const video = document.querySelector('[data-hero-video]');
+    const errorBox = document.querySelector('[data-hero-video-error]');
+    if (!video) return;
+
+    video.addEventListener('error', () => {
+      if (errorBox) errorBox.hidden = false;
+    });
+
+    video.addEventListener('loadeddata', () => {
+      if (errorBox) errorBox.hidden = true;
+    });
+
+    // Force the browser to resolve the asset after the DOM has been rendered.
+    video.load();
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        // Autoplay may be blocked; controls remain available.
+      });
+    }
   }
 
   function navItem(page, label) {
@@ -726,6 +774,7 @@
 
   async function render() {
     app.innerHTML = header() + await page() + footer();
+    setupHeroVideo();
     window.scrollTo({ top: 0, behavior: 'instant' });
     const heroVideo = document.querySelector('.fg-hero-bg-video');
     if (heroVideo && heroVideo.paused) {

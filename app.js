@@ -18,7 +18,7 @@ const ORDER_STATUSES=['รอรับคำสั่งซื้อ','กำล
 const money=n=>new Intl.NumberFormat('th-TH').format(n||0);
 const esc=s=>String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c});
 
-const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
+const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
 // go: เปลี่ยนหน้าของ Admin แล้ว render หน้าจอใหม่
 function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;S.page=p;render()}
 
@@ -29,7 +29,7 @@ function head(t,d,a){return '<div class="page-head"><div><h2>'+t+'</h2><p>'+d+'<
 function layout(c){
   if(!currentUser||!AUTH_STATE.profile)return renderAuth();
   if(AUTH_STATE.profile.role!=='admin')return userLayout(userPage());
-  document.getElementById('app').innerHTML='<div class="app fg-admin-app"><aside class="sidebar fg-admin-sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="fg-admin-label">ADMIN CONSOLE</div><div class="nav">'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main fg-admin-main"><div class="topbar fg-admin-topbar"><div><span>FISHGROW / ระบบจัดการธุรกิจ</span><small>จัดการร้านค้า การผลิต และข้อมูลการขาย</small></div><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'
+  document.getElementById('app').innerHTML='<div class="app fg-admin-app"><aside class="sidebar fg-admin-sidebar"><div class="brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><div><h1>FISHGROW</h1><small>SMART FEED MANAGEMENT</small></div></div><div class="fg-admin-label">ADMIN CONSOLE</div><div class="nav">'+menus.map(function(m){return '<button class="'+(S.page===m[0]?'active':'')+'" data-page="'+m[0]+'" onclick="go(this.dataset.page)">'+m[1]+' &nbsp; '+m[2]+'</button>'}).join('')+'</div></aside><main class="main fg-admin-main"><div class="topbar fg-admin-topbar"><div><span>FISHGROW / ระบบจัดการธุรกิจ</span><small>จัดการร้านค้าและข้อมูลการขาย</small></div><div class="session-actions"><span class="session-chip">'+esc(AUTH_STATE.profile.full_name||currentUser.email)+'</span><button class="btn light" onclick="signOutUser()">ออกจากระบบ</button></div></div>'+c+'</main><div id="modal" class="modal-bg"></div><div id="toast" class="toast"></div></div>'
 }
 // orderStatusClass: แปลงสถานะคำสั่งซื้อเป็น CSS class
 function orderStatusClass(status){return status==='รอชำระ'||status==='รอรับคำสั่งซื้อ'||status==='pending'?'warn':status==='ยกเลิก'||status==='cancelled'?'muted':status==='กำลังจัดเตรียม'||status==='จัดส่งแล้ว'||status==='processing'||status==='shipped'?'info':''}
@@ -660,7 +660,7 @@ window.addEventListener('unhandledrejection',function(event) {
 // render: เลือกหน้าที่ต้องแสดงตาม role และ S.page
 async function render() {
     if(!currentUser||!AUTH_STATE.profile)return renderAuth();
-    var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings,'knowledge-admin':knowledgeAdmin,'recommendation-admin':recommendationAdmin,'product-metadata':productMetadata};
+  var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings,'knowledge-admin':knowledgeAdmin,'recommendation-admin':recommendationAdmin,'product-metadata':productMetadata};
     if(AUTH_STATE.profile.role!=='admin')return layout(userPage());
     if(!p[S.page])S.page='dashboard';
     if(S.page==='knowledge-admin') await loadKnowledgeAdmin();

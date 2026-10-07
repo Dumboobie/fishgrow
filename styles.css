@@ -641,3 +641,16 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
     white-space:normal;
   }
 }
+
+
+/* Keep Why FishGrow headings on one line */
+.fg-feature h3{
+  font-size:18px;
+  white-space:nowrap;
+}
+@media(max-width:1000px){
+  .fg-feature h3{
+    font-size:17px;
+    white-space:normal;
+  }
+}

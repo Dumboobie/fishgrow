@@ -619,3 +619,9 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
     min-height:0;
   }
 }
+
+
+/* Reduce About hero heading size */
+.fg-about-hero-copy h1{
+  font-size:clamp(32px,4vw,52px);
+}

@@ -1,0 +1,344 @@
+/* FISHGROW public website
+ * Public storefront + recommendation wizard + feed calculator.
+ * Uses the existing Supabase browser client and existing store_products table.
+ */
+(function () {
+  'use strict';
+
+  const $ = (s) => document.querySelector(s);
+  const app = $('#app');
+  const supabase = window.fishgrowSupabase;
+  const state = {
+    page: 'home',
+    products: [],
+    selectedProduct: null,
+    cart: JSON.parse(localStorage.getItem('fg_public_cart') || '{}'),
+    recommendation: { fish: '', stage: '', goal: '', farm: '' },
+    calculator: { count: '', weight: '', rate: '3', price: '' },
+    orderCode: ''
+  };
+
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+
+  const money = (value) => new Intl.NumberFormat('th-TH', {
+    maximumFractionDigits: 2
+  }).format(Number(value) || 0);
+
+  const saveCart = () => localStorage.setItem('fg_public_cart', JSON.stringify(state.cart));
+  const cartCount = () => Object.values(state.cart).reduce((sum, n) => sum + Number(n || 0), 0);
+  const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * Number(state.cart[p.product_id] || 0), 0);
+
+  async function loadProducts() {
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from('store_products')
+      .select('product_id,sku,name,stock,price,is_available,image_url,updated_at')
+      .eq('is_available', true)
+      .order('product_id');
+
+    if (!error) state.products = data || [];
+  }
+
+  function navItem(page, label) {
+    return '<a class="' + (state.page === page ? 'active' : '') +
+      '" href="#' + page + '" data-nav="' + page + '">' + label + '</a>';
+  }
+
+  function header() {
+    return '<header class="fg-header"><div class="fg-container fg-nav">' +
+      '<a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
+      '<nav class="fg-main-nav">' +
+      navItem('home', 'หน้าหลัก') +
+      navItem('products', 'สินค้า') +
+      navItem('recommend', 'เลือกอาหาร') +
+      navItem('calculator', 'คำนวณอาหาร') +
+      navItem('howto', 'วิธีใช้') +
+      navItem('about', 'เกี่ยวกับเรา') +
+      '</nav>' +
+      '<div class="fg-nav-actions">' +
+      '<a class="fg-cart-link" href="#cart">🛒 ตะกร้า <b>' + cartCount() + '</b></a>' +
+      '<a class="fg-btn fg-btn-green fg-order-top" href="#account">เข้าสู่ระบบ / สั่งซื้อ</a>' +
+      '<button class="fg-menu-btn" type="button" aria-label="เปิดเมนู">☰</button>' +
+      '</div></div></header>';
+  }
+
+  function footer() {
+    return '<footer class="fg-footer"><div class="fg-container fg-footer-grid">' +
+      '<div><a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
+      '<p>เปลี่ยนปลาหมอคางดำให้เป็นคุณค่าใหม่<br>เพื่ออาหารปลาและการเกษตรที่ยั่งยืน</p>' +
+      '<small>© 2024 FishGrow Thailand. Sustainable Aquaculture Solutions.</small></div>' +
+      '<div><h4>เมนู</h4><a href="#home">หน้าหลัก</a><a href="#products">สินค้า</a><a href="#recommend">เลือกอาหาร</a><a href="#calculator">คำนวณอาหาร</a><a href="#howto">วิธีใช้</a><a href="#about">เกี่ยวกับเรา</a></div>' +
+      '<div><h4>ความรู้และช่วยเหลือ</h4><a href="#knowledge">ความรู้</a><a href="#tracking">ติดตามคำสั่งซื้อ</a><a href="#faq">FAQ</a><a href="#contact">ติดต่อเรา</a></div>' +
+      '<div><h4>นโยบาย</h4><a href="#privacy">นโยบายความเป็นส่วนตัว</a><a href="#terms">เงื่อนไขการสั่งซื้อ</a><a href="#returns">นโยบายการคืนสินค้า</a></div>' +
+      '</div></footer>';
+  }
+
+  function productCard(p, compact) {
+    const qty = Number(state.cart[p.product_id] || 0);
+    const image = p.image_url
+      ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '" loading="lazy">'
+      : '<div class="fg-product-placeholder">🐟</div>';
+
+    return '<article class="fg-product-card">' +
+      '<a class="fg-product-image" href="#product/' + p.product_id + '">' + image + '</a>' +
+      '<div class="fg-product-body"><div class="fg-chip">' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</div>' +
+      '<h3><a href="#product/' + p.product_id + '">' + esc(p.name) + '</a></h3>' +
+      '<p class="fg-muted">SKU ' + esc(p.sku) + '</p>' +
+      '<div class="fg-product-meta"><span>คงเหลือ ' + money(p.stock) + ' kg</span><strong>฿' + money(p.price) + '<small>/kg</small></strong></div>' +
+      (compact ? '' : '<div class="fg-product-actions"><a class="fg-btn fg-btn-light" href="#product/' + p.product_id + '">ดูรายละเอียด</a>' +
+      '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button></div>') +
+      (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button>' : '') +
+      (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' kg</div>' : '') +
+      '</div></article>';
+  }
+
+  function hero() {
+    return '<section class="fg-hero"><div class="fg-hero-overlay"></div><div class="fg-container fg-hero-content">' +
+      '<span class="fg-eyebrow">♧ Sustainability First</span>' +
+      '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
+      '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
+      '<div class="fg-hero-actions"><a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a><a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a></div>' +
+      '<div class="fg-hero-tags"><span>♻️ Local Resource</span><span>🐟 Aquaculture Feed</span><span>🌱 Sustainability</span></div>' +
+      '</div></section>';
+  }
+
+  function home() {
+    const featured = state.products.slice(0, 3);
+    return hero() +
+      '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">FishGrow</span><h2>จากปัญหาสู่โอกาส</h2><p>FishGrow นำปลาหมอคางดำซึ่งเป็นทรัพยากรจากปัญหาการแพร่ระบาด มาใช้ประโยชน์ผ่านกระบวนการแปรรูปและผสมกับวัตถุดิบท้องถิ่น เพื่อพัฒนาเป็นอาหารปลาที่ตอบโจทย์เกษตรกร</p></div>' +
+      '<div class="fg-value-grid"><div><b>🌱 สิ่งแวดล้อม</b><p>นำทรัพยากรจากปัญหามาใช้ประโยชน์อย่างเหมาะสม</p></div><div><b>💰 เศรษฐกิจ</b><p>เพิ่มมูลค่าให้วัตถุดิบและสนับสนุนเศรษฐกิจท้องถิ่น</p></div><div><b>👨‍🌾 ชุมชน</b><p>เชื่อมโยงทรัพยากรท้องถิ่นกับเกษตรกร</p></div></div></div></section>' +
+      '<section class="fg-section fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Why FishGrow</span><h2>ทำไมต้อง FishGrow?</h2></div><div class="fg-feature-grid"><div class="fg-feature"><span>♻️</span><h3>เปลี่ยนปัญหาเป็นคุณค่า</h3><p>นำปลาหมอคางดำมาใช้ประโยชน์อย่างเหมาะสม</p></div><div class="fg-feature"><span>🐟</span><h3>แหล่งโปรตีนจากปลา</h3><p>ใช้วัตถุดิบจากปลาเป็นส่วนหนึ่งของสูตรอาหาร</p></div><div class="fg-feature"><span>🌾</span><h3>วัตถุดิบท้องถิ่น</h3><p>สนับสนุนการใช้ทรัพยากรที่มีอยู่ในพื้นที่</p></div><div class="fg-feature"><span>💰</span><h3>ใส่ใจต้นทุน</h3><p>พัฒนาอาหารปลาให้ตอบโจทย์เกษตรกร</p></div><div class="fg-feature"><span>🌱</span><h3>สร้างความยั่งยืน</h3><p>เชื่อมโยงสิ่งแวดล้อม เศรษฐกิจ และชุมชน</p></div></div></div></section>' +
+      '<section class="fg-section"><div class="fg-container"><div class="fg-section-head fg-row-head"><div><span class="fg-kicker">Products</span><h2>อาหารปลาที่เหมาะกับฟาร์มของคุณ</h2></div><a href="#products" class="fg-text-link">ดูสินค้าทั้งหมด →</a></div><div class="fg-products-grid">' +
+      (featured.length ? featured.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ยังไม่มีสินค้าที่เปิดจำหน่าย</div>') +
+      '</div></div></section>' +
+      '<section class="fg-section fg-tool-band"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Farm Tools</span><h2>มากกว่าอาหารปลา เราช่วยคุณจัดการฟาร์ม</h2></div><div class="fg-tool-grid"><a href="#recommend" class="fg-tool-card"><span>🎯</span><div><h3>เลือกอาหารที่เหมาะกับฟาร์ม</h3><p>ตอบคำถามเกี่ยวกับชนิดปลา ช่วงวัย เป้าหมาย และขนาดฟาร์ม</p><b>เริ่มเลือกอาหาร →</b></div></a><a href="#calculator" class="fg-tool-card"><span>🧮</span><div><h3>คำนวณปริมาณอาหาร</h3><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p><b>เริ่มคำนวณ →</b></div></a></div></div></section>' +
+      '<section class="fg-section"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">FishGrow Process</span><h2>จากทรัพยากรท้องถิ่น สู่ FishGrow</h2></div><div class="fg-process">' +
+      ['ปลาหมอคางดำ','คัดแยกและทำความสะอาด','แปรรูป','บดและทำให้แห้ง','ผสมวัตถุดิบ','อัดเม็ด','ตรวจสอบคุณภาพ','อาหารปลา FishGrow'].map((x, i) => '<div><span>0' + (i + 1) + '</span><b>' + x + '</b></div>').join('') +
+      '</div></div></section>' +
+      '<section class="fg-section fg-impact"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Sustainability</span><h2>เปลี่ยนวิกฤตให้เกิดคุณค่า</h2></div><div class="fg-impact-grid"><div><span>🌱</span><h3>Environment</h3><p>ใช้ทรัพยากรจากปัญหาปลาหมอคางดำให้เกิดประโยชน์</p></div><div><span>💰</span><h3>Economy</h3><p>เพิ่มมูลค่าทรัพยากรและสนับสนุนกิจกรรมทางเศรษฐกิจ</p></div><div><span>👨‍🌾</span><h3>Community</h3><p>เชื่อมโยงทรัพยากร เกษตรกร และชุมชน</p></div></div></div></section>' +
+      '<section class="fg-cta"><div class="fg-container"><h2>ไม่แน่ใจว่าควรเลือกสูตรไหน?</h2><p>ตอบคำถามสั้น ๆ แล้วให้ FishGrow ช่วยแนะนำอาหารที่เหมาะกับฟาร์มของคุณ</p><a href="#recommend" class="fg-btn fg-btn-green">เริ่มค้นหาอาหาร</a></div></section>';
+  }
+
+  function products() {
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">FISHGROW PRODUCTS</span><h1>สินค้าทั้งหมด</h1><p>อาหารปลาคุณภาพจากทรัพยากรท้องถิ่น เพื่อการเกษตรที่ยั่งยืน</p></div><div class="fg-products-toolbar"><div class="fg-filter-pills"><button class="active">ทั้งหมด</button><button>พร้อมจำหน่าย</button></div><span>' + state.products.length + ' รายการ</span></div><div class="fg-products-grid fg-products-wide">' +
+      (state.products.length ? state.products.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ไม่พบสินค้า</div>') +
+      '</div></div></section>';
+  }
+
+  function productDetail(id) {
+    const p = state.products.find(x => String(x.product_id) === String(id));
+    if (!p) return products();
+    state.selectedProduct = p;
+    const image = p.image_url ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '">' : '<div class="fg-product-placeholder large">🐟</div>';
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div><div class="fg-detail-grid"><div><div class="fg-detail-image">' + image + '</div></div><div class="fg-detail-info"><span class="fg-kicker">AQUACULTURE FEED</span><h1>' + esc(p.name) + '</h1><p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p><div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div><div class="fg-detail-facts"><div><small>SKU</small><b>' + esc(p.sku) + '</b></div><div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div><div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div></div><div class="fg-detail-buy"><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button><a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a></div></div></div>' +
+      '<div class="fg-info-grid"><article><h3>รายละเอียดสินค้า</h3><p>ข้อมูลเชิงลึกของผลิตภัณฑ์จะแสดงตามข้อมูลที่ผู้ดูแลบันทึกในระบบสินค้า</p></article><article><h3>วิธีใช้</h3><p>ควรปรับปริมาณอาหารตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน</p><a href="#howto">อ่านวิธีใช้ →</a></article><article><h3>การเก็บรักษา</h3><p>เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดโดยตรง และปิดถุงให้สนิท</p></article></div></div></section>';
+  }
+
+  function recommend() {
+    const r = state.recommendation;
+    const step = !r.fish ? 1 : !r.stage ? 2 : !r.goal ? 3 : !r.farm ? 4 : 5;
+    const choices = {
+      fish: [['ปลานิล','ปลานิล'],['ปลาดุก','ปลาดุก'],['ปลาทับทิม','ปลาทับทิม'],['ปลากะพงขาว','ปลากะพงขาว'],['ปลาอื่น ๆ','อื่น ๆ']],
+      stage: [['ลูกปลา','ลูกปลา'],['ปลาวัยรุ่น','วัยรุ่น'],['ปลาโต','ปลาโต']],
+      goal: [['การเจริญเติบโต','growth'],['โปรตีน','protein'],['ควบคุมต้นทุน','cost'],['คุณภาพอาหาร','quality'],['อื่น ๆ','other']],
+      farm: [['ขนาดเล็ก','small'],['ขนาดกลาง','medium'],['ขนาดใหญ่','large']]
+    };
+    if (step === 5) {
+      const p = state.products[0];
+      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลที่คุณเลือก</p></div><div class="fg-result-card">' +
+        '<div><span class="fg-result-icon">🎯</span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(r.goal) + '</span><span>ฟาร์ม: ' + esc(r.farm) + '</span></div></div>' +
+        (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') +
+        '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
+    }
+    const key = step === 1 ? 'fish' : step === 2 ? 'stage' : step === 3 ? 'goal' : 'farm';
+    const title = step === 1 ? 'คุณเลี้ยงปลาชนิดใด?' : step === 2 ? 'ปลาอยู่ในช่วงไหน?' : step === 3 ? 'คุณต้องการเน้นอะไร?' : 'ขนาดฟาร์ม';
+    return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>เลือกอาหารให้เหมาะกับฟาร์ม</h1><p>ตอบคำถามสั้น ๆ 4 ขั้นตอน แล้วระบบจะแนะนำสินค้า</p></div><div class="fg-progress"><span style="width:' + (step * 25) + '%"></span></div><div class="fg-step-label">ขั้นตอนที่ ' + step + ' จาก 4</div><div class="fg-wizard-card"><h2>' + title + '</h2><div class="fg-choice-grid">' +
+      choices[key].map(([label, value]) => '<button class="fg-choice" data-choice-key="' + key + '" data-choice-value="' + esc(value) + '">' + (key === 'fish' ? '🐟' : key === 'stage' ? '◉' : key === 'goal' ? '✦' : '▦') + '<strong>' + label + '</strong></button>').join('') +
+      '</div></div></div></section>';
+  }
+
+  function calculator() {
+    const c = state.calculator;
+    const count = Number(c.count), weight = Number(c.weight), rate = Number(c.rate), price = Number(c.price || 0);
+    const biomass = count > 0 && weight > 0 ? count * weight / 1000 : 0;
+    const daily = biomass * rate / 100;
+    const monthly = daily * 30;
+    const cost = monthly * price;
+    return '<section class="fg-page"><div class="fg-container fg-calc"><div class="fg-page-head"><span class="fg-kicker">FEED CALCULATOR</span><h1>คำนวณปริมาณอาหาร</h1><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p></div><div class="fg-calc-grid"><form class="fg-calc-form" id="calc-form"><label>จำนวนปลา<input name="count" type="number" min="1" step="1" value="' + esc(c.count) + '" placeholder="เช่น 1000"></label><label>น้ำหนักเฉลี่ย<input name="weight" type="number" min="0" step="0.1" value="' + esc(c.weight) + '" placeholder="กรัม/ตัว"></label><label>อัตราการให้อาหาร (%)<input name="rate" type="number" min="0.1" max="20" step="0.1" value="' + esc(c.rate) + '"></label><label>ราคาอาหาร (บาท/kg)<input name="price" type="number" min="0" step="0.01" value="' + esc(c.price) + '" placeholder="ใส่เพื่อคำนวณค่าใช้จ่าย"></label><button class="fg-btn fg-btn-green" type="submit">คำนวณ</button></form><div class="fg-calc-result"><h2>ผลการคำนวณ</h2><div><small>น้ำหนักปลารวม</small><b>' + money(biomass) + ' kg</b></div><div><small>ปริมาณอาหารต่อวัน</small><b>' + money(daily) + ' kg/วัน</b></div><div><small>ปริมาณอาหารต่อเดือน</small><b>' + money(monthly) + ' kg/เดือน</b></div><div><small>ค่าอาหารโดยประมาณ</small><b>' + (price > 0 ? '฿' + money(cost) + '/เดือน' : 'กรอกราคาอาหารเพื่อคำนวณ') + '</b></div></div></div><div class="fg-note">* สูตรคำนวณ: น้ำหนักปลารวม = จำนวนปลา × น้ำหนักเฉลี่ย ÷ 1,000 และอาหารต่อวัน = น้ำหนักปลารวม × อัตราการให้อาหาร ÷ 100 ผลลัพธ์เป็นค่าประมาณ ควรปรับตามชนิดปลา อายุปลา คุณภาพน้ำ และพฤติกรรมการกิน</div></div></section>';
+  }
+
+  function howto() {
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">HOW TO USE</span><h1>วิธีใช้อาหารปลา FishGrow</h1><p>คู่มือการให้อาหารที่ถูกต้อง เพื่อการเลี้ยงที่มีประสิทธิภาพ</p></div><div class="fg-feature-grid fg-howto-cards"><div class="fg-feature"><span>⚖️</span><h3>ปริมาณที่เหมาะสม</h3><p>ปรับตามน้ำหนักปลาและช่วงวัย</p></div><div class="fg-feature"><span>◷</span><h3>ความถี่</h3><p>แบ่งให้อาหารตามช่วงเวลาที่เหมาะสม</p></div><div class="fg-feature"><span>💧</span><h3>การหว่าน</h3><p>หว่านให้กระจายทั่วบ่อ เพื่อลดการแย่งอาหาร</p></div></div><div class="fg-table-card"><h2>ปริมาณอาหารที่แนะนำ</h2><p class="fg-muted">ตัวเลขควรตรวจสอบกับสูตรอาหารและชนิดปลาจริงก่อนเผยแพร่</p><table><thead><tr><th>ช่วงอายุ</th><th>ขนาดเม็ด</th><th>ปริมาณ (% ของน้ำหนักตัว)</th></tr></thead><tbody><tr><td>ลูกปลา</td><td>1 mm</td><td>5–7%</td></tr><tr><td>ปลาวัยรุ่น</td><td>2–3 mm</td><td>3–5%</td></tr><tr><td>ปลาโต</td><td>4–5 mm</td><td>2–3%</td></tr></tbody></table></div><div class="fg-steps"><h2>วิธีให้อาหาร</h2><div><b>01</b><p>ชั่งหรือประเมินน้ำหนักปลา</p></div><div><b>02</b><p>คำนวณปริมาณอาหาร</p></div><div><b>03</b><p>แบ่งให้อาหารตามความเหมาะสม</p></div><div><b>04</b><p>สังเกตการกิน</p></div><div><b>05</b><p>ปรับปริมาณตามสภาพปลาและน้ำ</p></div></div><div class="fg-storage"><h2>วิธีเก็บรักษา</h2><span>❄️ เก็บในที่แห้งและเย็น</span><span>☀️ หลีกเลี่ยงแสงแดดและความชื้น</span><span>📦 ปิดปากถุงให้สนิท</span></div></div></section>';
+  }
+
+  function about() {
+    return '<section class="fg-about-hero"><div class="fg-container"><span class="fg-kicker">ABOUT FISHGROW</span><h1>จากปัญหาท้องถิ่น<br><span>สู่คุณค่าใหม่ที่ยั่งยืน</span></h1><p>พลิกวิกฤตปลาหมอคางดำ ให้กลายเป็นแหล่งทรัพยากรคุณภาพ เพื่อการเพาะเลี้ยงสัตว์น้ำและชุมชน</p></div></section><section class="fg-section"><div class="fg-container"><div class="fg-story"><span class="fg-kicker">เรื่องราวของเรา</span><h2>จุดเริ่มต้นจากวิกฤตสิ่งแวดล้อม</h2><p>FishGrow มองหาวิธีนำปลาหมอคางดำและวัตถุดิบท้องถิ่นมาใช้ประโยชน์อย่างเหมาะสม ผ่านการแปรรูปและพัฒนาเป็นอาหารปลา</p><div class="fg-story-flow"><span>ปลาหมอคางดำ</span><i>→</i><span>แปรรูป</span><i>→</i><span>วัตถุดิบอาหารปลา</span><i>→</i><span>FishGrow</span><i>→</i><span>สร้างคุณค่า</span></div></div></div></section><section class="fg-section fg-soft"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Sustainability Journey</span><h2>วงจรความยั่งยืน</h2></div><div class="fg-process fg-process-wide"><div><span>01</span><b>ทรัพยากรท้องถิ่น</b><small>ปลาหมอคางดำและวัตถุดิบในพื้นที่</small></div><div><span>02</span><b>การแปรรูป</b><small>คัดเลือกและเตรียมวัตถุดิบ</small></div><div><span>03</span><b>อาหารปลา</b><small>พัฒนาเป็นผลิตภัณฑ์</small></div><div><span>04</span><b>สร้างคุณค่า</b><small>เพิ่มมูลค่าทรัพยากร</small></div><div><span>05</span><b>ชุมชนเติบโต</b><small>สร้างโอกาสทางเศรษฐกิจในพื้นที่</small></div></div></div></section>';
+  }
+
+  function knowledge() {
+    const articles = ['วิธีเลือกอาหารปลาให้เหมาะกับช่วงวัย','ให้อาหารปลาวันละกี่ครั้ง?','วิธีคำนวณปริมาณอาหารปลา','วิธีลดต้นทุนอาหารในฟาร์ม','ปลาหมอคางดำคืออะไร?','ทำไมปลาหมอคางดำจึงเป็นปัญหา?','การเพิ่มมูลค่าทรัพยากรท้องถิ่น'];
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">KNOWLEDGE</span><h1>ความรู้</h1><p>ความรู้สำหรับเกษตรกรและผู้สนใจการเลี้ยงปลา</p></div><div class="fg-article-grid">' + articles.map((a,i) => '<article><span>0' + ((i%7)+1) + '</span><h3>' + a + '</h3><p>บทความความรู้เกี่ยวกับการเลี้ยงปลา อาหารปลา และการใช้ทรัพยากรอย่างเหมาะสม</p><a href="#knowledge">อ่านเพิ่มเติม →</a></article>').join('') + '</div></div></section>';
+  }
+
+  function faq() {
+    const qs = ['FishGrow คืออะไร?','FishGrow เหมาะกับปลาอะไร?','ควรให้อาหารวันละกี่ครั้ง?','มีขนาดบรรจุเท่าไหร่?','มีขั้นต่ำในการสั่งซื้อหรือไม่?','มีบริการจัดส่งหรือไม่?','ซื้อจำนวนมากมีราคาส่งไหม?'];
+    return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><span class="fg-kicker">FAQ</span><h1>คำถามที่พบบ่อย</h1><p>คำตอบเบื้องต้นเกี่ยวกับสินค้าและบริการ FishGrow</p></div><div class="fg-faq">' + qs.map(q => '<details><summary>' + q + '</summary><p>' + (q === 'FishGrow คืออะไร?' ? 'อาหารปลาที่พัฒนาจากแนวคิดการเพิ่มมูลค่าปลาหมอคางดำและวัตถุดิบท้องถิ่น' : 'รายละเอียดขึ้นอยู่กับข้อมูลของสินค้าและเงื่อนไขการให้บริการที่ผู้ดูแลกำหนดในระบบ') + '</p></details>').join('') + '</div></div></section>';
+  }
+
+  function tracking() {
+    return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><span class="fg-kicker">ORDER TRACKING</span><h1>ติดตามคำสั่งซื้อ</h1><p>สำหรับผู้ที่มีบัญชี FishGrow สามารถดูสถานะคำสั่งซื้อได้จากบัญชีของคุณ</p></div><div class="fg-track-card"><label>หมายเลขคำสั่งซื้อ<input id="track-code" placeholder="เช่น FGW-000001"></label><button class="fg-btn fg-btn-green" data-track-submit>ตรวจสอบ</button><div id="track-result"></div><a href="#account" class="fg-text-link">เข้าสู่ระบบเพื่อดูคำสั่งซื้อของฉัน →</a></div></div></section>';
+  }
+
+  function contact() {
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">CONTACT</span><h1>ติดต่อเรา</h1><p>สอบถามข้อมูลสินค้า การสั่งซื้อ หรือรายละเอียดสำหรับฟาร์มของคุณ</p></div><div class="fg-contact-grid"><div class="fg-contact-info"><h2>ติดต่อ FishGrow</h2><p>โทรศัพท์: 08X-XXX-XXXX</p><p>LINE: @FishGrow</p><p>Email: fishgrow@email.com</p><p>Facebook: FishGrow Thailand</p><p>ที่อยู่: สมุทรสาคร ประเทศไทย</p></div><form id="contact-form" class="fg-contact-form"><label>ชื่อ<input name="name" required></label><label>Email<input name="email" type="email" required></label><label>เบอร์โทร<input name="phone"></label><label>หัวข้อ<input name="subject" required></label><label>ข้อความ<textarea name="message" rows="5" required></textarea></label><button class="fg-btn fg-btn-green">ส่งข้อความ</button><p id="contact-status" class="fg-muted"></p></form></div></div></section>';
+  }
+
+  function cart() {
+    const lines = Object.keys(state.cart).map(id => {
+      const p = state.products.find(x => String(x.product_id) === String(id));
+      if (!p) return '';
+      return '<div class="fg-cart-line"><div><b>' + esc(p.name) + '</b><small>฿' + money(p.price) + '/kg</small></div><div class="fg-cart-qty"><button data-cart-delta="' + id + ':-1">−</button><b>' + state.cart[id] + '</b><button data-cart-delta="' + id + ':1">+</button></div><strong>฿' + money(p.price * state.cart[id]) + '</strong><button class="fg-remove" data-cart-remove="' + id + '">×</button></div>';
+    }).join('');
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">SHOPPING CART</span><h1>ตะกร้าสินค้า</h1><p>ตรวจสอบสินค้าและจำนวนก่อนสั่งซื้อ</p></div>' +
+      '<div class="fg-cart-layout"><div class="fg-cart-list">' + (lines || '<div class="fg-empty">ยังไม่มีสินค้าในตะกร้า <a href="#products">ไปเลือกสินค้า</a></div>') + '</div><aside class="fg-summary"><h2>สรุปคำสั่งซื้อ</h2><div><span>สินค้า</span><b>฿' + money(cartTotal()) + '</b></div><div><span>ค่าจัดส่ง</span><b>คำนวณตอนสั่งซื้อ</b></div><hr><div class="total"><span>ยอดรวมสินค้า</span><b>฿' + money(cartTotal()) + '</b></div><a class="fg-btn fg-btn-green fg-full-btn" href="#account">เข้าสู่ระบบเพื่อสั่งซื้อ</a></aside></div></div></section>';
+  }
+
+  function account() {
+    return '<section class="fg-page"><div class="fg-container fg-account-prompt"><div class="fg-login-visual"><span>FISHGROW</span><h1>จัดการคำสั่งซื้อ<br>ของคุณในที่เดียว</h1><p>เข้าสู่ระบบเพื่อสั่งซื้อสินค้า ดูประวัติ และติดตามสถานะคำสั่งซื้อ</p></div><div class="fg-account-card"><h2>เข้าสู่ระบบ / สมัครสมาชิก</h2><p>ระบบจะพาไปยังหน้าบัญชีเดิมของ FishGrow ที่เชื่อมกับ Supabase Auth</p><a class="fg-btn fg-btn-green fg-full-btn" href="?mode=account">เข้าสู่ระบบ</a><a class="fg-btn fg-btn-light fg-full-btn" href="#products">กลับไปเลือกสินค้า</a></div></div></section>';
+  }
+
+  function privacy() {
+    return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><h1>นโยบายความเป็นส่วนตัว</h1><p>FishGrow เก็บและใช้ข้อมูลเท่าที่จำเป็นต่อการให้บริการและจัดการคำสั่งซื้อ</p></div><div class="fg-policy"><h3>ข้อมูลที่อาจใช้</h3><p>ข้อมูลบัญชี ข้อมูลติดต่อ ข้อมูลจัดส่ง และข้อมูลคำสั่งซื้อ</p><h3>การใช้งานข้อมูล</h3><p>ใช้เพื่อดำเนินการสั่งซื้อ ติดต่อผู้ใช้ และปรับปรุงบริการ</p></div></div></section>';
+  }
+
+  function page() {
+    const hash = location.hash.slice(1) || 'home';
+    if (hash.startsWith('product/')) return productDetail(hash.split('/')[1]);
+    if (hash === 'home') return home();
+    if (hash === 'products') return products();
+    if (hash === 'recommend') return recommend();
+    if (hash === 'calculator') return calculator();
+    if (hash === 'howto') return howto();
+    if (hash === 'about') return about();
+    if (hash === 'knowledge') return knowledge();
+    if (hash === 'faq') return faq();
+    if (hash === 'tracking') return tracking();
+    if (hash === 'contact') return contact();
+    if (hash === 'cart') return cart();
+    if (hash === 'account') return account();
+    if (hash === 'privacy') return privacy();
+    if (hash === 'terms' || hash === 'returns') return privacy();
+    return home();
+  }
+
+  async function trackOrder(code) {
+    const result = $('#track-result');
+    if (!code) {
+      result.innerHTML = '<p class="fg-error">กรุณากรอกหมายเลขคำสั่งซื้อ</p>';
+      return;
+    }
+    result.innerHTML = '<p class="fg-muted">กำลังตรวจสอบ...</p>';
+    const { data, error } = await supabase
+      .from('store_orders')
+      .select('id,status,created_at,total_amount')
+      .eq('id', Number(String(code).replace(/\D/g, '')))
+      .maybeSingle();
+    if (error || !data) {
+      result.innerHTML = '<p class="fg-error">ไม่พบคำสั่งซื้อ หรือระบบไม่อนุญาตให้ตรวจสอบรายการนี้ กรุณาเข้าสู่ระบบ</p>';
+      return;
+    }
+    result.innerHTML = '<div class="fg-timeline"><div class="done">✓ รับคำสั่งซื้อ</div><div class="' + (data.status !== 'รอรับคำสั่งซื้อ' ? 'done' : '') + '">02 ยืนยันการชำระเงิน</div><div class="' + (['กำลังจัดเตรียม','จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">03 กำลังเตรียมสินค้า</div><div class="' + (['จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">04 กำลังจัดส่ง</div><div class="' + (data.status === 'เสร็จสิ้น' ? 'done' : '') + '">05 จัดส่งสำเร็จ</div></div><p><b>สถานะปัจจุบัน:</b> ' + esc(data.status) + '</p>';
+  }
+
+  async function submitContact(form) {
+    const status = $('#contact-status');
+    const values = Object.fromEntries(new FormData(form).entries());
+    status.textContent = 'กำลังส่งข้อความ...';
+    const { error } = await supabase.from('contact_messages').insert(values);
+    status.textContent = error ? 'ส่งข้อความไม่สำเร็จ กรุณาติดต่อผ่านช่องทางที่ระบุไว้' : 'ส่งข้อความเรียบร้อยแล้ว ขอบคุณที่ติดต่อ FishGrow';
+  }
+
+  function handleClick(e) {
+    const nav = e.target.closest('[data-nav]');
+    if (nav) return;
+
+    const add = e.target.closest('[data-add]');
+    if (add) {
+      const id = add.dataset.add;
+      const p = state.products.find(x => String(x.product_id) === id);
+      if (p && Number(state.cart[id] || 0) < Number(p.stock)) {
+        state.cart[id] = Number(state.cart[id] || 0) + 1;
+        saveCart();
+        render();
+      }
+      return;
+    }
+
+    const choice = e.target.closest('[data-choice-key]');
+    if (choice) {
+      state.recommendation[choice.dataset.choiceKey] = choice.dataset.choiceValue;
+      render();
+      return;
+    }
+
+    if (e.target.closest('[data-reset-recommend]')) {
+      state.recommendation = { fish: '', stage: '', goal: '', farm: '' };
+      render();
+      return;
+    }
+
+    const delta = e.target.closest('[data-cart-delta]');
+    if (delta) {
+      const [id, d] = delta.dataset.cartDelta.split(':');
+      const p = state.products.find(x => String(x.product_id) === id);
+      const next = Number(state.cart[id] || 0) + Number(d);
+      if (next <= 0) delete state.cart[id];
+      else if (p && next <= Number(p.stock)) state.cart[id] = next;
+      saveCart();
+      render();
+      return;
+    }
+
+    const remove = e.target.closest('[data-cart-remove]');
+    if (remove) {
+      delete state.cart[remove.dataset.cartRemove];
+      saveCart();
+      render();
+    }
+  }
+
+  function handleSubmit(e) {
+    if (e.target.id === 'calc-form') {
+      e.preventDefault();
+      state.calculator = Object.fromEntries(new FormData(e.target).entries());
+      render();
+    }
+    if (e.target.id === 'contact-form') {
+      e.preventDefault();
+      submitContact(e.target);
+    }
+  }
+
+  function render() {
+    app.innerHTML = header() + page() + footer();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  document.addEventListener('click', handleClick);
+  document.addEventListener('submit', handleSubmit);
+  window.addEventListener('hashchange', render);
+
+  (async function init() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('mode') === 'account' || params.get('mode') === 'admin') {
+      const script = document.createElement('script');
+      script.src = 'app.js';
+      document.body.appendChild(script);
+      return;
+    }
+    await loadProducts();
+    render();
+  })();
+})();

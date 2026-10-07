@@ -24,7 +24,7 @@ function save(){localStorage.setItem('fg',JSON.stringify(S));void syncAppState()
 
 // load: โหลด state เดิมจาก localStorage
 function load(){try{if(remoteStateLoaded||(AUTH_STATE.profile&&AUTH_STATE.profile.role!=='admin'))return;Object.assign(S,JSON.parse(localStorage.getItem('fg'))||{})}catch(e){}}
-const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า']];
+const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
 // go: เปลี่ยนหน้าของ Admin แล้ว render หน้าจอใหม่
 function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;S.page=p;render()}
 
@@ -129,6 +129,88 @@ async function updateStoreOrderStatus(orderId,status) {
     await loadAdminWebOrders();render();toast('เปลี่ยนสถานะไม่สำเร็จ: '+(error.message||'กรุณาลองใหม่'))
   }
 }
+function knowledgeAdmin(){
+  var rows=window.__FG_ARTICLES||[];
+  return head('บทความความรู้','เพิ่ม แก้ไข และเผยแพร่บทความบนหน้าเว็บ','<button class="btn green" onclick="articlePrompt()">+ เพิ่มบทความ</button>')+
+  '<div class="card"><table><thead><tr><th>หัวข้อ</th><th>หมวดหมู่</th><th>สถานะ</th><th>วันที่</th><th></th></tr></thead><tbody>'+
+  (rows.length?rows.map(function(a){return '<tr><td><b>'+esc(a.title)+'</b><br><span class="muted">'+esc(a.slug)+'</span></td><td>'+esc(a.category)+'</td><td><span class="badge">'+(a.is_published?'เผยแพร่':'ฉบับร่าง')+'</span></td><td>'+esc(a.published_at||'—')+'</td><td><button class="btn light" onclick="articlePrompt('+a.id+')">แก้ไข</button> <button class="btn light" onclick="deleteArticle('+a.id+')">ลบ</button></td></tr>'}).join(''):'<tr><td colspan="5" class="empty-state">ยังไม่มีบทความ</td></tr>')+'</tbody></table></div>';
+}
+async function loadKnowledgeAdmin(){
+  var r=await window.fishgrowSupabase.from('knowledge_articles').select('*').order('created_at',{ascending:false});
+  window.__FG_ARTICLES=r.error?[]:(r.data||[]); return r;
+}
+async function articlePrompt(id){
+  var a=(window.__FG_ARTICLES||[]).find(function(x){return Number(x.id)===Number(id)})||{};
+  var title=prompt('ชื่อบทความ',a.title||''); if(title===null)return;
+  var slug=prompt('Slug ภาษาอังกฤษ เช่น fish-feed-guide',a.slug||''); if(slug===null)return;
+  var category=prompt('หมวดหมู่ เช่น การเลี้ยงปลา / อาหารปลา / ปลาหมอคางดำ',a.category||'การเลี้ยงปลา'); if(category===null)return;
+  var excerpt=prompt('คำโปรย',a.excerpt||''); if(excerpt===null)return;
+  var content=prompt('เนื้อหาบทความ',a.content||''); if(content===null)return;
+  var published=confirm('ต้องการเผยแพร่บทความนี้ทันทีหรือไม่?');
+  var payload={slug:slug.trim(),title:title.trim(),category:category.trim(),excerpt:excerpt.trim(),content:content,is_published:published,published_at:published?new Date().toISOString():null,updated_at:new Date().toISOString()};
+  var q=id?window.fishgrowSupabase.from('knowledge_articles').update(payload).eq('id',id):window.fishgrowSupabase.from('knowledge_articles').insert(payload);
+  var r=await q;
+  if(r.error){toast('บันทึกบทความไม่สำเร็จ: '+r.error.message);return}
+  await loadKnowledgeAdmin(); render(); toast('บันทึกบทความแล้ว');
+}
+async function deleteArticle(id){
+  if(!confirm('ลบบทความนี้หรือไม่?'))return;
+  var r=await window.fishgrowSupabase.from('knowledge_articles').delete().eq('id',id);
+  if(r.error){toast('ลบไม่สำเร็จ: '+r.error.message);return}
+  await loadKnowledgeAdmin(); render(); toast('ลบบทความแล้ว');
+}
+function recommendationAdmin(){
+  var rows=window.__FG_RULES||[];
+  return head('ระบบแนะนำอาหาร','กำหนดเงื่อนไขและสินค้าที่ระบบจะแนะนำ','<button class="btn green" onclick="recommendationPrompt()">+ เพิ่มกฎ</button>')+
+  '<div class="card"><table><thead><tr><th>สินค้า</th><th>ชนิดปลา</th><th>ช่วงวัย</th><th>เป้าหมาย</th><th>ฟาร์ม</th><th>Priority</th><th></th></tr></thead><tbody>'+
+  (rows.length?rows.map(function(x){return '<tr><td>'+esc(x.product_name||x.product_id)+'</td><td>'+esc(x.fish_type)+'</td><td>'+esc(x.stage)+'</td><td>'+esc(x.goal)+'</td><td>'+esc(x.farm_size)+'</td><td>'+x.priority+'</td><td><button class="btn light" onclick="recommendationPrompt('+x.id+')">แก้ไข</button> <button class="btn light" onclick="deleteRecommendation('+x.id+')">ลบ</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty-state">ยังไม่มีกฎแนะนำ</td></tr>')+'</tbody></table></div>';
+}
+async function loadRecommendationAdmin(){
+  var r=await window.fishgrowSupabase.from('store_product_recommendation_rules').select('id,product_id,fish_type,stage,goal,farm_size,priority,reason,is_active,store_products(name)').order('priority',{ascending:false});
+  window.__FG_RULES=(r.data||[]).map(function(x){x.product_name=x.store_products&&x.store_products.name;return x}); return r;
+}
+async function recommendationPrompt(id){
+  var x=(window.__FG_RULES||[]).find(function(a){return Number(a.id)===Number(id)})||{};
+  var pid=prompt('Product ID',x.product_id||''); if(pid===null)return;
+  var fish=prompt('ชนิดปลา',x.fish_type||'ปลากะพงขาว'); if(fish===null)return;
+  var stage=prompt('ช่วงวัย',x.stage||'ลูกปลา'); if(stage===null)return;
+  var goal=prompt('เป้าหมาย เช่น growth / protein / cost / quality',x.goal||'growth'); if(goal===null)return;
+  var farm=prompt('ขนาดฟาร์ม: small / medium / large',x.farm_size||'small'); if(farm===null)return;
+  var priority=Number(prompt('Priority -100 ถึง 100',x.priority??10)); if(Number.isNaN(priority))return;
+  var reason=prompt('เหตุผลที่แนะนำ',x.reason||'')||'';
+  var payload={product_id:Number(pid),fish_type:fish.trim(),stage:stage.trim(),goal:goal.trim(),farm_size:farm.trim(),priority:priority,reason:reason,is_active:true,updated_at:new Date().toISOString()};
+  var q=id?window.fishgrowSupabase.from('store_product_recommendation_rules').update(payload).eq('id',id):window.fishgrowSupabase.from('store_product_recommendation_rules').insert(payload);
+  var r=await q;if(r.error){toast('บันทึกกฎไม่สำเร็จ: '+r.error.message);return}
+  await loadRecommendationAdmin();render();toast('บันทึกกฎแนะนำแล้ว');
+}
+async function deleteRecommendation(id){
+  if(!confirm('ลบกฎนี้หรือไม่?'))return;
+  var r=await window.fishgrowSupabase.from('store_product_recommendation_rules').delete().eq('id',id);
+  if(r.error){toast('ลบไม่สำเร็จ: '+r.error.message);return}
+  await loadRecommendationAdmin();render();toast('ลบกฎแล้ว');
+}
+async function productMetadata(){
+  var r=await window.fishgrowSupabase.from('store_products').select('product_id,name,sku,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').order('product_id');
+  var rows=r.data||[];
+  return head('ข้อมูลสินค้า','จัดการข้อมูลที่ใช้แสดงบนหน้ารายละเอียดและระบบแนะนำอาหาร')+'<div class="card"><table><thead><tr><th>สินค้า</th><th>ชนิดปลา</th><th>ช่วงวัย</th><th>เป้าหมาย</th><th>โปรตีน</th><th></th></tr></thead><tbody>'+rows.map(function(p){return '<tr><td><b>'+esc(p.name)+'</b><br><span class="muted">'+esc(p.sku)+'</span></td><td>'+esc((p.fish_types||[]).join(', '))+'</td><td>'+esc((p.stages||[]).join(', '))+'</td><td>'+esc((p.goals||[]).join(', '))+'</td><td>'+esc(p.protein_pct??'—')+'%</td><td><button class="btn light" onclick="productMetadataPrompt('+p.product_id+')">แก้ไข</button></td></tr>'}).join('')+'</tbody></table></div>';
+}
+async function productMetadataPrompt(id){
+  var r=await window.fishgrowSupabase.from('store_products').select('*').eq('product_id',id).single(); if(r.error)return toast('โหลดสินค้าไม่สำเร็จ');
+  var p=r.data;
+  var fish=prompt('ชนิดปลา คั่นด้วย ,', (p.fish_types||[]).join(', ')); if(fish===null)return;
+  var stages=prompt('ช่วงวัย คั่นด้วย ,', (p.stages||[]).join(', ')); if(stages===null)return;
+  var goals=prompt('เป้าหมาย เช่น growth,protein,cost,quality คั่นด้วย ,', (p.goals||[]).join(', ')); if(goals===null)return;
+  var pellet=prompt('ขนาดเม็ด',p.pellet_size||''); if(pellet===null)return;
+  var protein=prompt('โปรตีน (%)',p.protein_pct??''); if(protein===null)return;
+  var description=prompt('รายละเอียดสินค้า',p.description||''); if(description===null)return;
+  var ingredients=prompt('ส่วนประกอบ',p.ingredients||''); if(ingredients===null)return;
+  var usage=prompt('วิธีใช้',p.usage_note||''); if(usage===null)return;
+  var storage=prompt('การเก็บรักษา',p.storage_note||''); if(storage===null)return;
+  var payload={fish_types:fish.split(',').map(function(x){return x.trim()}).filter(Boolean),stages:stages.split(',').map(function(x){return x.trim()}).filter(Boolean),goals:goals.split(',').map(function(x){return x.trim()}).filter(Boolean),pellet_size:pellet.trim(),protein_pct:protein===''?null:Number(protein),description:description,ingredients:ingredients,usage_note:usage,storage_note:storage};
+  var u=await window.fishgrowSupabase.from('store_products').update(payload).eq('product_id',id);
+  if(u.error){toast('บันทึกข้อมูลสินค้าไม่สำเร็จ: '+u.error.message);return}render();toast('บันทึกข้อมูลสินค้าแล้ว');
+}
+
 async function storeSettings(){
   var r=await window.fishgrowSupabase.from('store_settings').select('*').eq('id',1).maybeSingle();
   var s=r.data||{};
@@ -506,9 +588,11 @@ window.addEventListener('unhandledrejection',function(event) {
 async function render() {
     if(AUTH_STATE.profile&&AUTH_STATE.profile.role==='admin')load();
     if(!currentUser||!AUTH_STATE.profile)return renderAuth();
-    var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings};
+    var p={dashboard:dashboard,products:products,materials:materials,recipes:recipes,production:production,stock:stock,customers:customers,orders:orders,finance:finance,reports:reports,'store-settings':storeSettings,'knowledge-admin':knowledgeAdmin,'recommendation-admin':recommendationAdmin,'product-metadata':productMetadata};
     if(AUTH_STATE.profile.role!=='admin')return layout(userPage());
     if(!p[S.page])S.page='dashboard';
+    if(S.page==='knowledge-admin') await loadKnowledgeAdmin();
+    if(S.page==='recommendation-admin') await loadRecommendationAdmin();
     layout(await p[S.page]());
   }
 

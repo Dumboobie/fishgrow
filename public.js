@@ -43,7 +43,8 @@
     storyImageUrl: '',
     videoPosterUrl: '',
     youtubeUrl: '',
-    videoUrl: 'https://file.kiwi/4654542c#5aTCJdMzWwPd9KvzAa6dMw',
+    heroVideoUrl: 'assets/hero-bg.mp4',
+    videoUrl: 'assets/feeding-fish.mp4',
     gallery: [
       { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },
       { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '' },
@@ -187,13 +188,36 @@
   }
 
   function hero() {
-    return '<section class="fg-hero"><div class="fg-hero-overlay"></div><div class="fg-container fg-hero-layout"><div class="fg-hero-content">' +
-      '<span class="fg-eyebrow">♧ Sustainability First</span>' +
-      '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
-      '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
-      '<div class="fg-hero-actions"><a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a><a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a></div>' +
-      '<div class="fg-hero-tags"><span>♻️ Local Resource</span><span>🐟 Aquaculture Feed</span><span>🌱 Sustainability</span></div>' +
-      '</div><div class="fg-hero-media">' + aboutVideo() + '<p class="fg-hero-media-note">วิดีโอแนะนำ FISHGROW · รองรับ YouTube หรือ MP4 ภายหลัง</p></div></div></section>';
+    const videoSrc = ABOUT_MEDIA.heroVideoUrl || 'assets/hero-bg.mp4';
+    return '<section class="fg-hero fg-hero-video-banner">' +
+      '<div class="fg-hero-video-wrap">' +
+        '<video class="fg-hero-bg-video" autoplay loop muted playsinline preload="auto">' +
+          '<source src="' + esc(videoSrc) + '" type="video/mp4">' +
+        '</video>' +
+      '</div>' +
+      '<div class="fg-hero-overlay"></div>' +
+      '<div class="fg-container fg-hero-inner">' +
+        '<div class="fg-hero-content">' +
+          '<span class="fg-eyebrow">♧ Sustainability First</span>' +
+          '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
+          '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
+          '<div class="fg-hero-actions">' +
+            '<a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a>' +
+            '<a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a>' +
+          '</div>' +
+          '<div class="fg-hero-tags">' +
+            '<span>♻️ Local Resource</span>' +
+            '<span>🐟 Aquaculture Feed</span>' +
+            '<span>🌱 Sustainability</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button class="fg-hero-video-ctrl" type="button" data-hero-video-ctrl aria-label="หยุดหรือเล่นวิดีโอพื้นหลัง" title="หยุด / เล่นวิดีโอพื้นหลัง">' +
+        '<span class="fg-pulse-dot"></span>' +
+        '<span class="fg-ctrl-icon">⏸</span>' +
+        '<span class="fg-ctrl-text">วิดีโอพื้นหลัง</span>' +
+      '</button>' +
+    '</section>';
   }
 
   function home() {
@@ -659,6 +683,24 @@
       return;
     }
 
+    const heroVideoCtrl = e.target.closest('[data-hero-video-ctrl]');
+    if (heroVideoCtrl) {
+      const vid = document.querySelector('.fg-hero-bg-video');
+      if (vid) {
+        const icon = heroVideoCtrl.querySelector('.fg-ctrl-icon');
+        if (vid.paused) {
+          vid.play().catch(() => {});
+          heroVideoCtrl.classList.remove('paused');
+          if (icon) icon.textContent = '⏸';
+        } else {
+          vid.pause();
+          heroVideoCtrl.classList.add('paused');
+          if (icon) icon.textContent = '▶';
+        }
+      }
+      return;
+    }
+
     const menu = e.target.closest('.fg-menu-btn');
     if (menu) {
       document.querySelector('.fg-main-nav')?.classList.toggle('open');
@@ -685,6 +727,10 @@
   async function render() {
     app.innerHTML = header() + await page() + footer();
     window.scrollTo({ top: 0, behavior: 'instant' });
+    const heroVideo = document.querySelector('.fg-hero-bg-video');
+    if (heroVideo && heroVideo.paused) {
+      heroVideo.play().catch(() => {});
+    }
   }
 
   document.addEventListener('click', handleClick);

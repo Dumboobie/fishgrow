@@ -46,11 +46,11 @@
     heroVideoUrl: 'assets/hero-bg.mp4',
     videoUrl: '/assets/video1.mp4',
     gallery: [
-      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: '' },
-      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: '' },
-      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: '' },
-      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: '' },
-      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: '' }
+      { label: 'คัดวัตถุดิบ', detail: 'ภาพกระบวนการคัดเลือกวัตถุดิบจริง', url: 'assets/pic1.jpg' },
+      { label: 'แปรรูป', detail: 'ภาพการเตรียมวัตถุดิบจริง', url: 'assets/pic2.jpg' },
+      { label: 'ผสมสูตร', detail: 'ภาพการผสมสูตรอาหารจริง', url: 'assets/pic3.jpg' },
+      { label: 'อัดเม็ด', detail: 'ภาพขั้นตอนการอัดเม็ดจริง', url: 'assets/pic4.jpg' },
+      { label: 'บรรจุ', detail: 'ภาพบรรจุภัณฑ์จริง', url: 'assets/pic5.jpg' }
     ]
   };
 
@@ -228,8 +228,8 @@
       '<p class="fg-muted">SKU ' + esc(p.sku) + '</p>' +
       '<div class="fg-product-meta"><span>คงเหลือ ' + money(p.stock) + ' kg</span><strong>฿' + money(p.price) + '<small>/kg</small></strong></div>' +
       (compact ? '' : '<div class="fg-product-actions"><a class="fg-btn fg-btn-light" href="#product/' + p.product_id + '">ดูรายละเอียด</a>' +
-      '<button class="fg-btn fg-btn-light" data-compare="' + p.product_id + '">' + (state.compare.includes(Number(p.product_id)) ? '✓ เทียบแล้ว' : '＋ เปรียบเทียบ') + '</button>' +
-      '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button></div>') +
+        '<button class="fg-btn fg-btn-light" data-compare="' + p.product_id + '">' + (state.compare.includes(Number(p.product_id)) ? '✓ เทียบแล้ว' : '＋ เปรียบเทียบ') + '</button>' +
+        '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button></div>') +
       (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button>' : '') +
       (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' kg</div>' : '') +
       '</div></article>';
@@ -239,33 +239,33 @@
     const videoSrc = ABOUT_MEDIA.heroVideoUrl || 'assets/hero-bg.mp4';
     return '<section class="fg-hero fg-hero-video-banner">' +
       '<div class="fg-hero-video-wrap">' +
-        '<video class="fg-hero-bg-video" autoplay loop muted playsinline preload="auto">' +
-          '<source src="' + esc(videoSrc) + '" type="video/mp4">' +
-        '</video>' +
+      '<video class="fg-hero-bg-video" autoplay loop muted playsinline preload="auto">' +
+      '<source src="' + esc(videoSrc) + '" type="video/mp4">' +
+      '</video>' +
       '</div>' +
       '<div class="fg-hero-overlay"></div>' +
       '<div class="fg-container fg-hero-inner">' +
-        '<div class="fg-hero-content">' +
-          '<span class="fg-eyebrow">♧ Sustainability First</span>' +
-          '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
-          '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
-          '<div class="fg-hero-actions">' +
-            '<a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a>' +
-            '<a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a>' +
-          '</div>' +
-          '<div class="fg-hero-tags">' +
-            '<span>♻️ Local Resource</span>' +
-            '<span>🐟 Aquaculture Feed</span>' +
-            '<span>🌱 Sustainability</span>' +
-          '</div>' +
-        '</div>' +
+      '<div class="fg-hero-content">' +
+      '<span class="fg-eyebrow">♧ Sustainability First</span>' +
+      '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
+      '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
+      '<div class="fg-hero-actions">' +
+      '<a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a>' +
+      '<a class="fg-btn fg-btn-white" href="#products">ดูสินค้า</a>' +
+      '</div>' +
+      '<div class="fg-hero-tags">' +
+      '<span>♻️ Local Resource</span>' +
+      '<span>🐟 Aquaculture Feed</span>' +
+      '<span>🌱 Sustainability</span>' +
+      '</div>' +
+      '</div>' +
       '</div>' +
       '<button class="fg-hero-video-ctrl" type="button" data-hero-video-ctrl aria-label="หยุดหรือเล่นวิดีโอพื้นหลัง" title="หยุด / เล่นวิดีโอพื้นหลัง">' +
-        '<span class="fg-pulse-dot"></span>' +
-        '<span class="fg-ctrl-icon">⏸</span>' +
-        '<span class="fg-ctrl-text">วิดีโอพื้นหลัง</span>' +
+      '<span class="fg-pulse-dot"></span>' +
+      '<span class="fg-ctrl-icon">⏸</span>' +
+      '<span class="fg-ctrl-text">วิดีโอพื้นหลัง</span>' +
       '</button>' +
-    '</section>';
+      '</section>';
   }
 
   function home() {
@@ -278,8 +278,8 @@
       (featured.length ? featured.map(p => productCard(p, false)).join('') : '<div class="fg-empty">ยังไม่มีสินค้าที่เปิดจำหน่าย</div>') +
       '</div></div></section>' +
       '<section class="fg-section fg-tool-band"><div class="fg-container"><div class="fg-section-head"><span class="fg-kicker">Farm Tools</span><h2>มากกว่าอาหารปลา เราช่วยคุณจัดการฟาร์ม</h2></div><div class="fg-tool-grid"><a href="#recommend" class="fg-tool-card"><span>🎯</span><div><h3>เลือกอาหารที่เหมาะกับฟาร์ม</h3><p>ตอบคำถามเกี่ยวกับชนิดปลา ช่วงวัย เป้าหมาย และขนาดฟาร์ม</p><b>เริ่มเลือกอาหาร →</b></div></a><a href="#calculator" class="fg-tool-card"><span>🧮</span><div><h3>คำนวณปริมาณอาหาร</h3><p>คำนวณจากจำนวนปลา น้ำหนักเฉลี่ย และอัตราการให้อาหาร</p><b>เริ่มคำนวณ →</b></div></a></div></div></section>' +
-      
-      
+
+
       '<section class="fg-cta"><div class="fg-container"><h2>ไม่แน่ใจว่าควรเลือกสูตรไหน?</h2><p>ตอบคำถามสั้น ๆ แล้วให้ FishGrow ช่วยแนะนำอาหารที่เหมาะกับฟาร์มของคุณ</p><a href="#recommend" class="fg-btn fg-btn-green">เริ่มค้นหาอาหาร</a></div></section>';
   }
 
@@ -309,36 +309,36 @@
 
     return '<section class="fg-page">' +
       '<div class="fg-container">' +
-        '<div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div>' +
-        '<div class="fg-detail-grid">' +
-          '<div><div class="fg-detail-image">' + image + '</div></div>' +
-          '<div class="fg-detail-info">' +
-            '<span class="fg-kicker">AQUACULTURE FEED</span>' +
-            '<h1>' + esc(p.name) + '</h1>' +
-            '<p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p>' +
-            '<div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div>' +
-            '<div class="fg-detail-facts">' +
-              '<div><small>SKU</small><b>' + esc(p.sku) + '</b></div>' +
-              '<div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div>' +
-              '<div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div>' +
-            '</div>' +
-            '<div class="fg-detail-buy">' +
-              '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button>' +
-              '<a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="fg-info-grid">' +
-          '<article><h3>รายละเอียดสินค้า</h3><p>' + esc(p.description || 'ยังไม่ได้ระบุรายละเอียดสินค้า') + '</p>' + protein + pellet + '</article>' +
-          '<article><h3>ส่วนประกอบ</h3><p>' + esc(p.ingredients || 'ยังไม่ได้ระบุส่วนประกอบ') + '</p></article>' +
-          '<article><h3>วิธีใช้และการเก็บรักษา</h3>' +
-            '<p>' + esc(p.usage_note || 'ควรปรับตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน') + '</p>' +
-            '<p>' + esc(p.storage_note || 'เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดและความชื้น') + '</p>' +
-            '<a href="#howto">อ่านวิธีใช้ →</a>' +
-          '</article>' +
-        '</div>' +
+      '<div class="fg-breadcrumb"><a href="#products">สินค้า</a> / ' + esc(p.name) + '</div>' +
+      '<div class="fg-detail-grid">' +
+      '<div><div class="fg-detail-image">' + image + '</div></div>' +
+      '<div class="fg-detail-info">' +
+      '<span class="fg-kicker">AQUACULTURE FEED</span>' +
+      '<h1>' + esc(p.name) + '</h1>' +
+      '<p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p>' +
+      '<div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div>' +
+      '<div class="fg-detail-facts">' +
+      '<div><small>SKU</small><b>' + esc(p.sku) + '</b></div>' +
+      '<div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div>' +
+      '<div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div>' +
       '</div>' +
-    '</section>';
+      '<div class="fg-detail-buy">' +
+      '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button>' +
+      '<a class="fg-btn fg-btn-light" href="#recommend">🎯 ให้ระบบช่วยเลือก</a>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="fg-info-grid">' +
+      '<article><h3>รายละเอียดสินค้า</h3><p>' + esc(p.description || 'ยังไม่ได้ระบุรายละเอียดสินค้า') + '</p>' + protein + pellet + '</article>' +
+      '<article><h3>ส่วนประกอบ</h3><p>' + esc(p.ingredients || 'ยังไม่ได้ระบุส่วนประกอบ') + '</p></article>' +
+      '<article><h3>วิธีใช้และการเก็บรักษา</h3>' +
+      '<p>' + esc(p.usage_note || 'ควรปรับตามชนิดปลา ช่วงวัย คุณภาพน้ำ และพฤติกรรมการกิน') + '</p>' +
+      '<p>' + esc(p.storage_note || 'เก็บในที่แห้งและเย็น หลีกเลี่ยงแสงแดดและความชื้น') + '</p>' +
+      '<a href="#howto">อ่านวิธีใช้ →</a>' +
+      '</article>' +
+      '</div>' +
+      '</div>' +
+      '</section>';
   }
 
   function compare() {
@@ -355,17 +355,17 @@
     const r = state.recommendation;
     const rules = state.recommendationRules || [];
     const values = key => [...new Set(rules.map(x => x[key]).filter(Boolean))];
-    const labels = { growth:'การเจริญเติบโต', cost:'ควบคุมต้นทุน', protein:'โปรตีน', quality:'คุณภาพอาหาร', other:'อื่น ๆ', small:'ขนาดเล็ก', medium:'ขนาดกลาง', large:'ขนาดใหญ่' };
+    const labels = { growth: 'การเจริญเติบโต', cost: 'ควบคุมต้นทุน', protein: 'โปรตีน', quality: 'คุณภาพอาหาร', other: 'อื่น ๆ', small: 'ขนาดเล็ก', medium: 'ขนาดกลาง', large: 'ขนาดใหญ่' };
     const step = !r.fish ? 1 : !r.stage ? 2 : !r.goal ? 3 : !r.farm ? 4 : 5;
     if (step === 5) {
-      const matches = rules.map(rule => ({ rule, score:Number(rule.priority||0)+(rule.fish_type===r.fish?40:0)+(rule.stage===r.stage?30:0)+(rule.goal===r.goal?20:0)+(rule.farm_size===r.farm?10:0) })).filter(x => x.rule.fish_type===r.fish).sort((a,b)=>b.score-a.score);
-      const match=matches[0], p=match ? state.products.find(x=>Number(x.product_id)===Number(match.rule.product_id)) : null;
-      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon">🎯</span><h2>'+(p?esc(p.name):'ยังไม่มีสินค้าที่ตรงเงื่อนไข')+'</h2><p>เหมาะสำหรับ '+esc(r.fish)+' · '+esc(r.stage)+'</p><div class="fg-result-tags"><span>เป้าหมาย: '+esc(labels[r.goal]||r.goal)+'</span><span>ฟาร์ม: '+esc(labels[r.farm]||r.farm)+'</span></div>'+(match&&match.rule.reason?'<p class="fg-muted">'+esc(match.rule.reason)+'</p>':'')+'</div>'+(p?'<div class="fg-result-price">฿'+money(p.price)+'<small>/kg</small><button class="fg-btn fg-btn-green" data-add="'+p.product_id+'">เพิ่มลงตะกร้า</button></div>':'')+'</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
+      const matches = rules.map(rule => ({ rule, score: Number(rule.priority || 0) + (rule.fish_type === r.fish ? 40 : 0) + (rule.stage === r.stage ? 30 : 0) + (rule.goal === r.goal ? 20 : 0) + (rule.farm_size === r.farm ? 10 : 0) })).filter(x => x.rule.fish_type === r.fish).sort((a, b) => b.score - a.score);
+      const match = matches[0], p = match ? state.products.find(x => Number(x.product_id) === Number(match.rule.product_id)) : null;
+      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon">🎯</span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(labels[r.goal] || r.goal) + '</span><span>ฟาร์ม: ' + esc(labels[r.farm] || r.farm) + '</span></div>' + (match && match.rule.reason ? '<p class="fg-muted">' + esc(match.rule.reason) + '</p>' : '') + '</div>' + (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') + '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
     }
-    const key=step===1?'fish_type':step===2?'stage':step===3?'goal':'farm_size', current=values(key);
-    const uiKey=key==='fish_type'?'fish':key==='farm_size'?'farm':key;
-    const title=step===1?'คุณเลี้ยงปลาชนิดใด?':step===2?'ปลาอยู่ในช่วงไหน?':step===3?'คุณต้องการเน้นอะไร?':'ขนาดฟาร์ม';
-    return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>เลือกอาหารให้เหมาะกับฟาร์ม</h1><p>ตัวเลือกจะแสดงจากเงื่อนไขที่มีอยู่จริงในระบบ</p></div><div class="fg-progress"><span style="width:'+(step*25)+'%"></span></div><div class="fg-step-label">ขั้นตอนที่ '+step+' จาก 4</div><div class="fg-wizard-card"><h2>'+title+'</h2><div class="fg-choice-grid">'+current.map(value=>'<button class="fg-choice" data-choice-key="'+uiKey+'" data-choice-value="'+esc(value)+'">'+(key==='fish_type'?'🐟':key==='stage'?'◉':key==='goal'?'✦':'▦')+'<strong>'+esc(labels[value]||value)+'</strong></button>').join('')+'</div></div></div></section>';
+    const key = step === 1 ? 'fish_type' : step === 2 ? 'stage' : step === 3 ? 'goal' : 'farm_size', current = values(key);
+    const uiKey = key === 'fish_type' ? 'fish' : key === 'farm_size' ? 'farm' : key;
+    const title = step === 1 ? 'คุณเลี้ยงปลาชนิดใด?' : step === 2 ? 'ปลาอยู่ในช่วงไหน?' : step === 3 ? 'คุณต้องการเน้นอะไร?' : 'ขนาดฟาร์ม';
+    return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>เลือกอาหารให้เหมาะกับฟาร์ม</h1><p>ตัวเลือกจะแสดงจากเงื่อนไขที่มีอยู่จริงในระบบ</p></div><div class="fg-progress"><span style="width:' + (step * 25) + '%"></span></div><div class="fg-step-label">ขั้นตอนที่ ' + step + ' จาก 4</div><div class="fg-wizard-card"><h2>' + title + '</h2><div class="fg-choice-grid">' + current.map(value => '<button class="fg-choice" data-choice-key="' + uiKey + '" data-choice-value="' + esc(value) + '">' + (key === 'fish_type' ? '🐟' : key === 'stage' ? '◉' : key === 'goal' ? '✦' : '▦') + '<strong>' + esc(labels[value] || value) + '</strong></button>').join('') + '</div></div></div></section>';
   }
 
   function feedingRateForWhiteSeabass(weight) {
@@ -400,8 +400,8 @@
   }
 
   function howto() {
-    const rows = [['5–20 กรัม','2.0–4.0%','2–3 มื้อ/วัน'],['20–100 กรัม','1.5–2.0%','2 มื้อ/วัน'],['100–200 กรัม','1.2–1.5%','1–2 มื้อ/วัน'],['200–300 กรัม','1.0–1.2%','1 มื้อ/วัน'],['มากกว่า 300 กรัม','0.8–1.0%','1 มื้อ/วัน']];
-    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">HOW TO USE</span><h1>วิธีใช้อาหารปลา FishGrow</h1><p>แนวทางการให้อาหารปลากะพงขาวตามน้ำหนักปลา</p></div><div class="fg-feature-grid fg-howto-cards"><div class="fg-feature"><span>⚖️</span><h3>คำนวณจากน้ำหนักรวม</h3><p>ใช้จำนวนปลา × น้ำหนักเฉลี่ย แล้วคูณด้วยอัตราการให้อาหาร</p></div><div class="fg-feature"><span>◷</span><h3>แบ่งตามความถี่</h3><p>แบ่งปริมาณอาหารต่อวันตามจำนวนมื้อที่เหมาะสม</p></div><div class="fg-feature"><span>💧</span><h3>สังเกตการกิน</h3><p>ปรับปริมาณตามการกินจริงและสภาพแวดล้อมของฟาร์ม</p></div></div><div class="fg-table-card"><h2>อัตราและความถี่การให้อาหารปลากะพงขาว</h2><table><thead><tr><th>ขนาดปลา</th><th>อัตราการกินอาหาร</th><th>ความถี่</th></tr></thead><tbody>' + rows.map(r => '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('') + '</tbody></table><p class="fg-muted">อัตราเป็นช่วงสำหรับใช้เป็นแนวทาง ไม่ควรใช้แทนการสังเกตการกินจริง</p></div><div class="fg-steps"><h2>วิธีให้อาหาร</h2><div><b>01</b><p>ประเมินจำนวนปลาและน้ำหนักเฉลี่ย</p></div><div><b>02</b><p>คำนวณปริมาณอาหารต่อวัน</p></div><div><b>03</b><p>แบ่งอาหารตามจำนวนมื้อ</p></div><div><b>04</b><p>สังเกตการกินและอาหารเหลือ</p></div><div><b>05</b><p>ปรับปริมาณตามสภาพปลาและคุณภาพน้ำ</p></div></div><div class="fg-storage"><h2>วิธีเก็บรักษา</h2><span>❄️ เก็บในที่แห้งและเย็น</span><span>☀️ หลีกเลี่ยงแสงแดดและความชื้น</span><span>📦 ปิดปากถุงให้สนิท</span></div></div></section>';
+    const rows = [['5–20 กรัม', '2.0–4.0%', '2–3 มื้อ/วัน'], ['20–100 กรัม', '1.5–2.0%', '2 มื้อ/วัน'], ['100–200 กรัม', '1.2–1.5%', '1–2 มื้อ/วัน'], ['200–300 กรัม', '1.0–1.2%', '1 มื้อ/วัน'], ['มากกว่า 300 กรัม', '0.8–1.0%', '1 มื้อ/วัน']];
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">HOW TO USE</span><h1>วิธีใช้อาหารปลา FishGrow</h1><p>แนวทางการให้อาหารปลากะพงขาวตามน้ำหนักปลา</p></div><div class="fg-feature-grid fg-howto-cards"><div class="fg-feature"><span>⚖️</span><h3>คำนวณจากน้ำหนักรวม</h3><p>ใช้จำนวนปลา × น้ำหนักเฉลี่ย แล้วคูณด้วยอัตราการให้อาหาร</p></div><div class="fg-feature"><span>◷</span><h3>แบ่งตามความถี่</h3><p>แบ่งปริมาณอาหารต่อวันตามจำนวนมื้อที่เหมาะสม</p></div><div class="fg-feature"><span>💧</span><h3>สังเกตการกิน</h3><p>ปรับปริมาณตามการกินจริงและสภาพแวดล้อมของฟาร์ม</p></div></div><div class="fg-table-card"><h2>อัตราและความถี่การให้อาหารปลากะพงขาว</h2><table><thead><tr><th>ขนาดปลา</th><th>อัตราการกินอาหาร</th><th>ความถี่</th></tr></thead><tbody>' + rows.map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join('') + '</tbody></table><p class="fg-muted">อัตราเป็นช่วงสำหรับใช้เป็นแนวทาง ไม่ควรใช้แทนการสังเกตการกินจริง</p></div><div class="fg-steps"><h2>วิธีให้อาหาร</h2><div><b>01</b><p>ประเมินจำนวนปลาและน้ำหนักเฉลี่ย</p></div><div><b>02</b><p>คำนวณปริมาณอาหารต่อวัน</p></div><div><b>03</b><p>แบ่งอาหารตามจำนวนมื้อ</p></div><div><b>04</b><p>สังเกตการกินและอาหารเหลือ</p></div><div><b>05</b><p>ปรับปริมาณตามสภาพปลาและคุณภาพน้ำ</p></div></div><div class="fg-storage"><h2>วิธีเก็บรักษา</h2><span>❄️ เก็บในที่แห้งและเย็น</span><span>☀️ หลีกเลี่ยงแสงแดดและความชื้น</span><span>📦 ปิดปากถุงให้สนิท</span></div></div></section>';
   }
 
   function about() {
@@ -421,7 +421,7 @@
 
   function knowledge() {
     const articles = state.articles || [];
-    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">KNOWLEDGE</span><h1>ความรู้</h1><p>ความรู้สำหรับเกษตรกรและผู้สนใจการเลี้ยงปลา</p></div><div class="fg-article-grid">' + (articles.length ? articles.map((a,i) => '<article><span>0' + ((i%9)+1) + '</span><small class="fg-kicker">' + esc(a.category) + '</small><h3>' + esc(a.title) + '</h3><p>' + esc(a.excerpt) + '</p><a href="#knowledge/' + esc(a.slug) + '">อ่านเพิ่มเติม →</a></article>').join('') : '<div class="fg-empty">ยังไม่มีบทความที่เผยแพร่</div>') + '</div></div></section>';
+    return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">KNOWLEDGE</span><h1>ความรู้</h1><p>ความรู้สำหรับเกษตรกรและผู้สนใจการเลี้ยงปลา</p></div><div class="fg-article-grid">' + (articles.length ? articles.map((a, i) => '<article><span>0' + ((i % 9) + 1) + '</span><small class="fg-kicker">' + esc(a.category) + '</small><h3>' + esc(a.title) + '</h3><p>' + esc(a.excerpt) + '</p><a href="#knowledge/' + esc(a.slug) + '">อ่านเพิ่มเติม →</a></article>').join('') : '<div class="fg-empty">ยังไม่มีบทความที่เผยแพร่</div>') + '</div></div></section>';
   }
 
   function articleDetail(slug) {
@@ -431,7 +431,7 @@
   }
 
   function faq() {
-    const qs = ['FishGrow คืออะไร?','FishGrow เหมาะกับปลาอะไร?','ควรให้อาหารวันละกี่ครั้ง?','มีขนาดบรรจุเท่าไหร่?','มีขั้นต่ำในการสั่งซื้อหรือไม่?','มีบริการจัดส่งหรือไม่?','ซื้อจำนวนมากมีราคาส่งไหม?'];
+    const qs = ['FishGrow คืออะไร?', 'FishGrow เหมาะกับปลาอะไร?', 'ควรให้อาหารวันละกี่ครั้ง?', 'มีขนาดบรรจุเท่าไหร่?', 'มีขั้นต่ำในการสั่งซื้อหรือไม่?', 'มีบริการจัดส่งหรือไม่?', 'ซื้อจำนวนมากมีราคาส่งไหม?'];
     return '<section class="fg-page"><div class="fg-container fg-narrow"><div class="fg-page-head"><span class="fg-kicker">FAQ</span><h1>คำถามที่พบบ่อย</h1><p>คำตอบเบื้องต้นเกี่ยวกับสินค้าและบริการ FishGrow</p></div><div class="fg-faq">' + qs.map(q => '<details><summary>' + q + '</summary><p>' + (q === 'FishGrow คืออะไร?' ? 'อาหารปลาที่พัฒนาจากแนวคิดการเพิ่มมูลค่าปลาหมอคางดำและวัตถุดิบท้องถิ่น' : 'รายละเอียดขึ้นอยู่กับข้อมูลของสินค้าและเงื่อนไขการให้บริการที่ผู้ดูแลกำหนดในระบบ') + '</p></details>').join('') + '</div></div></section>';
   }
 
@@ -619,7 +619,7 @@
       result.innerHTML = '<p class="fg-error">ไม่พบคำสั่งซื้อ หรือระบบไม่อนุญาตให้ตรวจสอบรายการนี้ กรุณาเข้าสู่ระบบ</p>';
       return;
     }
-    result.innerHTML = '<div class="fg-timeline"><div class="done">✓ รับคำสั่งซื้อ</div><div class="' + (data.payment_status === 'verified' || data.status !== 'รอรับคำสั่งซื้อ' ? 'done' : '') + '">02 ยืนยันการชำระเงิน</div><div class="' + (['กำลังจัดเตรียม','จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">03 กำลังเตรียมสินค้า</div><div class="' + (['จัดส่งแล้ว','เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">04 กำลังจัดส่ง</div><div class="' + (data.status === 'เสร็จสิ้น' ? 'done' : '') + '">05 จัดส่งสำเร็จ</div></div><p><b>สถานะปัจจุบัน:</b> ' + esc(data.status) + '</p>' + (data.tracking_number ? '<p><b>เลข Tracking:</b> ' + esc(data.tracking_number) + '</p>' : '') + '<p><b>การชำระเงิน:</b> ' + esc(data.payment_status || 'pending') + '</p>';
+    result.innerHTML = '<div class="fg-timeline"><div class="done">✓ รับคำสั่งซื้อ</div><div class="' + (data.payment_status === 'verified' || data.status !== 'รอรับคำสั่งซื้อ' ? 'done' : '') + '">02 ยืนยันการชำระเงิน</div><div class="' + (['กำลังจัดเตรียม', 'จัดส่งแล้ว', 'เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">03 กำลังเตรียมสินค้า</div><div class="' + (['จัดส่งแล้ว', 'เสร็จสิ้น'].includes(data.status) ? 'done' : '') + '">04 กำลังจัดส่ง</div><div class="' + (data.status === 'เสร็จสิ้น' ? 'done' : '') + '">05 จัดส่งสำเร็จ</div></div><p><b>สถานะปัจจุบัน:</b> ' + esc(data.status) + '</p>' + (data.tracking_number ? '<p><b>เลข Tracking:</b> ' + esc(data.tracking_number) + '</p>' : '') + '<p><b>การชำระเงิน:</b> ' + esc(data.payment_status || 'pending') + '</p>';
   }
 
   async function submitContact(form) {
@@ -737,7 +737,7 @@
       if (vid) {
         const icon = heroVideoCtrl.querySelector('.fg-ctrl-icon');
         if (vid.paused) {
-          vid.play().catch(() => {});
+          vid.play().catch(() => { });
           heroVideoCtrl.classList.remove('paused');
           if (icon) icon.textContent = '⏸';
         } else {
@@ -778,7 +778,7 @@
     window.scrollTo({ top: 0, behavior: 'instant' });
     const heroVideo = document.querySelector('.fg-hero-bg-video');
     if (heroVideo && heroVideo.paused) {
-      heroVideo.play().catch(() => {});
+      heroVideo.play().catch(() => { });
     }
   }
 

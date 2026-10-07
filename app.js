@@ -242,12 +242,12 @@ function finance(){
 function reports(){
   var m=financeMetrics(),byMonth={},byProduct={};
   m.orders.forEach(function(o){var d=orderDateValue(o);if(!d)return;var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!byMonth[key])byMonth[key]={revenue:0,orders:0};if(o.status!=='ยกเลิก'&&o.status!=='cancelled'&&(o.paymentStatus==='verified'||o.status==='เสร็จสิ้น'||o.status==='completed')){byMonth[key].revenue+=o.amount;byMonth[key].orders++}});
-  m.recognized.forEach(function(o){o.items.forEach(function(item){var p=S.products.find(function(x){return String(x.id)===String(item.product_id)}),name=p?p.name:'สินค้า #'+item.product_id,qty=Number(item.quantity)||0;if(!byProduct[name])byProduct[name]={qty:0,revenue:0};byProduct[name].qty+=qty;byProduct[name].revenue+=o.amount*(qty/(o.items.reduce(function(a,x){return a+(Number(x.quantity)||0)},0)||1))})});
+  m.recognized.forEach(function(o){o.items.forEach(function(item){var p=S.products.find(function(x){return String(x.id)===String(item.product_id)}),name=p?p.name:'สินค้า #'+item.product_id,qty=Number(item.quantity)||0;if(!byProduct[name])byProduct[name]={qty:0};byProduct[name].qty+=qty})});
   var months=Object.keys(byMonth).sort().slice(-6);
   var maxMonth=Math.max.apply(null,months.map(function(k){return byMonth[k].revenue}).concat([1]));
   return head('รายงาน','วิเคราะห์ยอดขาย ต้นทุน การผลิต ค่าใช้จ่าย และผลประกอบการ')+
   '<div class="grid four"><div class="card kpi"><div class="label">ยอดขายสะสม</div><div class="value">฿'+money(m.revenue)+'</div></div><div class="card kpi"><div class="label">ยอดรอรับรู้</div><div class="value">฿'+money(m.pending)+'</div></div><div class="card kpi"><div class="label">ต้นทุนผลิตเดือนนี้</div><div class="value">฿'+money(m.materialCost)+'</div></div><div class="card kpi"><div class="label">กำไรเดือนนี้</div><div class="value">฿'+money(m.monthProfit)+'</div></div></div>'+
-  '<div class="grid two" style="margin-top:16px"><div class="card"><div class="section-title"><h3>ยอดขายย้อนหลัง</h3><span class="muted">6 เดือนล่าสุด</span></div>'+(months.length?'<div class="mini-chart">'+months.map(function(k){var v=byMonth[k];return '<span title="'+k+' ฿'+money(v.revenue)+'" style="height:'+Math.max(5,Math.round(v.revenue/maxMonth*100))+'%"><em>'+esc(k.slice(5))+'</em></span>'}).join('')+'</div>':'<div class="empty-state">ยังไม่มีข้อมูลยอดขาย</div>')+'</div><div class="card"><div class="section-title"><h3>ยอดขายตามสินค้า</h3></div>'+(Object.keys(byProduct).length?'<div class="bar-list">'+Object.keys(byProduct).map(function(k){var x=byProduct[k],max=Math.max.apply(null,Object.keys(byProduct).map(function(n){return byProduct[n].revenue}).concat([1]));return '<div class="bar-row"><span>'+esc(k)+'</span><div class="bar"><i style="width:'+Math.min(x.revenue/max*100,100)+'%"></i></div><b>฿'+money(x.revenue)+'</b></div>'}).join('')+'</div>':'<div class="empty-state">ยังไม่มีข้อมูลสินค้า</div>')+'</div></div>'+
+  '<div class="grid two" style="margin-top:16px"><div class="card"><div class="section-title"><h3>ยอดขายย้อนหลัง</h3><span class="muted">6 เดือนล่าสุด</span></div>'+(months.length?'<div class="mini-chart">'+months.map(function(k){var v=byMonth[k];return '<span title="'+k+' ฿'+money(v.revenue)+'" style="height:'+Math.max(5,Math.round(v.revenue/maxMonth*100))+'%"><em>'+esc(k.slice(5))+'</em></span>'}).join('')+'</div>':'<div class="empty-state">ยังไม่มีข้อมูลยอดขาย</div>')+'</div><div class="card"><div class="section-title"><h3>จำนวนขายตามสินค้า</h3></div>'+(Object.keys(byProduct).length?'<div class="bar-list">'+Object.keys(byProduct).map(function(k){var x=byProduct[k],max=Math.max.apply(null,Object.keys(byProduct).map(function(n){return byProduct[n].qty}).concat([1]));return '<div class="bar-row"><span>'+esc(k)+'</span><div class="bar"><i style="width:'+Math.min(x.qty/max*100,100)+'%"></i></div><b>'+money(x.qty)+' หน่วย</b></div>'}).join('')+'</div>':'<div class="empty-state">ยังไม่มีข้อมูลสินค้า</div>')+'</div></div>'+
   '<div class="grid two" style="margin-top:16px"><div class="card"><div class="section-title"><h3>ต้นทุนการผลิต</h3></div><table><tbody><tr><td>ผลิตทั้งหมด</td><td><b>'+money(m.output)+' kg</b></td></tr><tr><td>ต้นทุนวัตถุดิบ</td><td><b>฿'+money(m.materialCost)+'</b></td></tr><tr><td>ต้นทุนวัตถุดิบเฉลี่ย</td><td><b>฿'+money(m.output?m.materialCost/m.output:0)+'/kg</b></td></tr><tr><td>ค่าใช้จ่ายดำเนินงาน</td><td><b>฿'+money(m.expense)+'</b></td></tr></tbody></table></div><div class="card"><div class="section-title"><h3>ตัวชี้วัด FISHGROW</h3></div><table><tbody><tr><td>ราคาเป้าหมาย</td><td><b>฿40/kg</b></td></tr><tr><td>TAM</td><td><b>600,000 ราย</b></td></tr><tr><td>SAM</td><td><b>80,000 ตัน/ปี</b></td></tr><tr><td>SOM</td><td><b>25,000 ตัน/ปี</b></td></tr><tr><td>ตลาดเป้าหมาย</td><td><b>เกษตรกรรายเล็ก–กลาง</b></td></tr></tbody></table></div></div>';
 }
 function modal(title,body,fn) {
@@ -426,13 +426,13 @@ async function loadAdminStoreStock() {
 // businessOrders: รวมคำสั่งซื้อจาก state เดิมและหน้าร้านออนไลน์
 function businessOrders() {
     return (S.orders||[]).concat(ADMIN_WEB_ORDERS.map(function(o) {
-      return {id:o.order_code,storeOrderId:o.id,customer:o.customer_name,date:new Date(o.created_at).toLocaleDateString('th-TH'),amount:Number(o.total_amount),status:o.status}
+      return {id:o.order_code,storeOrderId:o.id,customer:o.customer_name,date:new Date(o.created_at).toLocaleDateString('th-TH'),created_at:o.created_at,amount:Number(o.total_amount),status:o.status,paymentStatus:o.payment_status,items:Array.isArray(o.items)?o.items:[]}
     }))
   }
 
 // isRecognizedOrder: ตรวจคำสั่งซื้อที่นับเป็นรายรับแล้ว
 function isRecognizedOrder(o) {
-    return o.status==='ชำระแล้ว'||o.status==='เสร็จสิ้น'||o.status==='completed'
+    return o.status!=='ยกเลิก'&&o.status!=='cancelled'&&(o.paymentStatus==='verified'||o.status==='ชำระแล้ว'||o.status==='เสร็จสิ้น'||o.status==='completed')
   }
 
 // isPendingOrder: ตรวจคำสั่งซื้อที่ยังรอดำเนินการ

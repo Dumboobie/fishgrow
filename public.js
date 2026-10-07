@@ -15,6 +15,7 @@
     recommendationRules: [],
     articles: [],
     selectedProduct: null,
+    user: null,
     cart: JSON.parse(localStorage.getItem('fg_public_cart') || '{}'),
     compare: JSON.parse(localStorage.getItem('fg_public_compare') || '[]'),
     recommendation: { fish: '', stage: '', goal: '', farm: '' },
@@ -71,6 +72,8 @@
 
   async function loadProducts() {
     if (!supabase) return;
+    const authResult = await supabase.auth.getUser();
+    if (!authResult.error) state.user = authResult.data.user || null;
     const [p, s, a, r] = await Promise.all([
       supabase.from('store_products').select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').eq('is_available', true).order('product_id'),
       supabase.from('store_settings').select('store_name,promptpay_name,promptpay_number,bank_name,bank_account_name,bank_account_number,cod_enabled,shipping_note,contact_phone,contact_line,contact_email').eq('id', 1).maybeSingle(),
@@ -89,6 +92,9 @@
   }
 
   function header() {
+    const accountAction = state.user
+      ? '<span class="fg-session-email">' + esc(state.user.email) + '</span><button class="fg-btn fg-btn-light fg-order-top" type="button" data-public-signout>ออกจากระบบ</button>'
+      : '<a class="fg-btn fg-btn-green fg-order-top" href="#account">เข้าสู่ระบบ / สั่งซื้อ</a>';
     return '<header class="fg-header"><div class="fg-container fg-nav">' +
       '<a class="fg-logo" href="#home">Fish<span>Grow</span></a>' +
       '<nav class="fg-main-nav">' +
@@ -101,7 +107,7 @@
       '</nav>' +
       '<div class="fg-nav-actions">' +
       '<a class="fg-cart-link" href="#cart">🛒 ตะกร้า <b>' + cartCount() + '</b></a>' +
-      '<a class="fg-btn fg-btn-green fg-order-top" href="#account">เข้าสู่ระบบ / สั่งซื้อ</a>' +
+      accountAction +
       '<button class="fg-menu-btn" type="button" aria-label="เปิดเมนู">☰</button>' +
       '</div></div></header>';
   }
@@ -511,9 +517,23 @@
     status.textContent = error ? 'ส่งข้อความไม่สำเร็จ กรุณาติดต่อผ่านช่องทางที่ระบุไว้' : 'ส่งข้อความเรียบร้อยแล้ว ขอบคุณที่ติดต่อ FishGrow';
   }
 
-  function handleClick(e) {
+  async function handleClick(e) {
     const nav = e.target.closest('[data-nav]');
     if (nav) return;
+
+    const signout = e.target.closest('[data-public-signout]');
+    if (signout) {
+      signout.disabled = true;
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        signout.disabled = false;
+        signout.textContent = 'ออกจากระบบไม่สำเร็จ';
+        return;
+      }
+      state.user = null;
+      render();
+      return;
+    }
 
     const compareButton = e.target.closest('[data-compare]');
     if (compareButton) {

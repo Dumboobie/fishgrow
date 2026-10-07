@@ -681,3 +681,7 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
     border-radius:18px;
   }
 }
+
+/* Slightly lift the hero content */
+.fg-hero-content{transform:translateY(-24px);}
+@media(max-width:720px){.fg-hero-content{transform:translateY(-14px);}}

@@ -512,3 +512,15 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
   object-position: center;
   display: block;
 }
+
+/* Login / order button: white background with dark text */
+.fg-nav-actions .fg-order-top {
+  background: #fff;
+  color: var(--fg-navy);
+  border: 1px solid var(--fg-line);
+}
+.fg-nav-actions .fg-order-top:hover {
+  background: #f5f6f2;
+  color: var(--fg-navy);
+  transform: translateY(-1px);
+}

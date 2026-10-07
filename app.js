@@ -1,7 +1,6 @@
 // AUTH_STATE: เก็บสถานะการ Login และ profile ของผู้ใช้
 const AUTH_STATE={mode:'user-login',profile:null,loading:false};
 let currentUser=null;
-let remoteStateLoaded=false;
 let USER_PRODUCTS=[];
 let USER_CART={};
 let USER_ORDERS=[];
@@ -19,11 +18,6 @@ const ORDER_STATUSES=['รอรับคำสั่งซื้อ','กำล
 const money=n=>new Intl.NumberFormat('th-TH').format(n||0);
 const esc=s=>String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c});
 
-// save: บันทึก state ลง localStorage และเรียกการซิงก์ข้อมูล
-function save(){localStorage.setItem('fg',JSON.stringify(S));void syncAppState()}
-
-// load: โหลด state เดิมจาก localStorage
-function load(){try{if(remoteStateLoaded||(AUTH_STATE.profile&&AUTH_STATE.profile.role!=='admin'))return;Object.assign(S,JSON.parse(localStorage.getItem('fg'))||{})}catch(e){}}
 const menus=[['dashboard','⌂','ภาพรวม'],['products','▣','สินค้า'],['materials','◈','วัตถุดิบ'],['recipes','⚗','สูตรอาหาร'],['production','⚙','การผลิต'],['stock','▤','สต็อก'],['customers','♙','ลูกค้า'],['orders','🛒','คำสั่งซื้อ'],['finance','฿','การเงิน'],['reports','▥','รายงาน'],['store-settings','⚙','ตั้งค่าร้านค้า'],['knowledge-admin','▤','จัดการบทความ'],['recommendation-admin','🎯','ระบบแนะนำ'],['product-metadata','▣','ข้อมูลสินค้า']];
 // go: เปลี่ยนหน้าของ Admin แล้ว render หน้าจอใหม่
 function go(p){if(!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;S.page=p;render()}
@@ -234,7 +228,7 @@ function modal(title,body,fn) {
     var button=this;button.disabled=true;
     try {
       var result=await fn();if(result===false)return;
-      save();closeModal();render();toast('บันทึกข้อมูลเรียบร้อย')
+      closeModal();render();toast('บันทึกข้อมูลเรียบร้อย')
     } catch(error) {
       toast(error.message||'กรุณาตรวจสอบข้อมูลแล้วลองใหม่')
     } finally {button.disabled=false}
@@ -351,108 +345,6 @@ async function loadAdminBusinessData() {
   if(r.error){console.warn('โหลดสูตรอาหารไม่สำเร็จ',r.error);S.recipes=[]}else S.recipes=(r.data||[]).map(function(x){return {id:Number(x.id),name:x.name,yieldKg:Number(x.yield_kg)||0,productId:x.product_id==null?null:Number(x.product_id),items:(x.store_recipe_items||[]).map(function(i){return {id:Number(i.id),materialId:Number(i.material_id),materialName:i.store_materials&&i.store_materials.name||'',quantity:Number(i.quantity_kg)||0,materialPrice:Number(i.material_price)||0}})}});
   if(pr.error)console.warn('โหลดประวัติการผลิตไม่สำเร็จ',pr.error);else S.productionRuns=(pr.data||[]).map(function(x){return {id:Number(x.id),date:x.production_date,recipeId:x.recipe_id==null?null:Number(x.recipe_id),recipeName:x.store_recipes&&x.store_recipes.name||'',batch:x.batch_count,quantity:Number(x.output_kg)||0,cost:Number(x.material_cost)||0,batchCode:x.batch_code||''}});
 }
-// loadRemoteState: โหลดข้อมูลธุรกิจ Admin จาก Supabase
-async function loadRemoteState() {
-    if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin')return;var r=await window.fishgrowSupabase.from('app_state').select('data').eq('id',1).maybeSingle();if(r.error) {
-      console.warn('โหลด app_state ไม่สำเร็จ',r.error);return
-    }
-    if(r.data&&r.data.data)Object.assign(S,r.data.data);remoteStateLoaded=true
-  }
-
-// syncAppState: ซิงก์ state ของ Admin ไปยัง Supabase
-async function syncAppState() {
-    if(!currentUser||!AUTH_STATE.profile||AUTH_STATE.profile.role!=='admin'||!window.fishgrowSupabase)return;
-    var r=await window.fishgrowSupabase.from('app_state').upsert({id:1,data:S,updated_at:new Date().toISOString()},{onConflict:'id'});
-    if(r.error)console.warn('บันทึก app_state ไม่สำเร็จ',r.error);
-  }
-
-// loadAdminStoreProducts: โหลดสินค้า Admin จาก store_products โดยตรง
-async function loadAdminStoreProducts() {
-    var r=await window.fishgrowSupabase.from('store_products').select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note').order('product_id');
-    if(r.error) {
-      console.warn('โหลดสินค้าใน store_products ไม่สำเร็จ',r.error);return
-    }
-    S.products=(r.data||[]).map(function(p){
-      return {id:Number(p.product_id),sku:p.sku||'',name:p.name||'',stock:Number(p.stock)||0,price:Number(p.price)||0,is_available:p.is_available!==false,image_url:p.image_url||'',fish_types:p.fish_types||[],stages:p.stages||[],goals:p.goals||[],pellet_size:p.pellet_size||'',protein_pct:p.protein_pct,description:p.description||'',ingredients:p.ingredients||'',usage_note:p.usage_note||'',storage_note:p.storage_note||''}
-    });
-  }
-
-// authMode: เปลี่ยนโหมด User Login, สมัครสมาชิก และ Admin Login
-function authMode(mode) {
-    AUTH_STATE.mode=mode;renderAuth()
-  }
-
-// renderAuth: สร้างหน้าล็อกอิน/สมัครสมาชิกและผูก form
-function renderAuth(message,error) {
-    var signup=AUTH_STATE.mode==='signup',admin=AUTH_STATE.mode==='admin-login';var title=signup?'สมัครสมาชิกผู้ใช้ทั่วไป':admin?'เข้าสู่ระบบ Admin':'เข้าสู่ระบบผู้ใช้';var submit=signup?'สมัครสมาชิก':'เข้าสู่ระบบ';var notice=error?'<div class="auth-message error">'+esc(error)+'</div>':message?'<div class="auth-message">'+esc(message)+'</div>':'';document.getElementById('app').innerHTML='<div class="auth-shell"><div class="auth-brand"><div class="brand-mark"><img src="assets/logo.png" alt="FISHGROW"></div><h1>FISHGROW</h1><p class="eyebrow">SMART FEED MANAGEMENT</p><p>ระบบจัดการธุรกิจอาหารปลากะพงขาวที่เชื่อมต่อข้อมูลอย่างปลอดภัย</p><div class="auth-points"><span>✓ บัญชีผู้ใช้แยกจากระบบ Admin</span><span>✓ ข้อมูลสิทธิ์จัดการจาก Supabase</span><span>✓ รักษาข้อมูลธุรกิจเดิมของ FISHGROW</span></div></div><div class="auth-card"><div class="auth-tabs"><button class="'+(AUTH_STATE.mode==='user-login'?'active':'')+'" onclick="authMode(\'user-login\')">User Login</button><button class="'+(signup?'active':'')+'" onclick="authMode(\'signup\')">สมัครสมาชิก</button><button class="'+(admin?'active':'')+'" onclick="authMode(\'admin-login\')">Admin Login</button></div><div class="auth-heading"><span class="badge">'+(admin?'ADMIN PORTAL':'FISHGROW ACCOUNT')+'</span><h2>'+title+'</h2><p>'+(signup?'สร้างบัญชีเพื่อใช้งานหน้า User':admin?'สำหรับบัญชีที่ได้รับ role admin เท่านั้น':'เข้าสู่ระบบเพื่อดูข้อมูลบัญชีของคุณ')+'</p></div>'+notice+'<form id="auth-form" class="auth-form">'+(signup?'<div class="field"><label>ชื่อ-นามสกุล</label><input name="full_name" autocomplete="name" required></div>':'')+'<div class="field"><label>อีเมล</label><input name="email" type="email" autocomplete="email" required></div>'+(signup?'<div class="field"><label>เบอร์โทรศัพท์</label><input name="phone" autocomplete="tel"></div>':'')+'<div class="field"><label>รหัสผ่าน</label><input name="password" type="password" minlength="6" autocomplete="'+(signup?'new-password':'current-password')+'" required></div><button class="btn green auth-submit" type="submit">'+submit+'</button></form><p class="auth-footnote">'+(admin?'ระบบจะตรวจ role จาก profiles ใน Supabase ก่อนเปิด Dashboard':signup?'สมัครแล้วอาจต้องยืนยันอีเมลก่อนเข้าสู่ระบบ':'หากยังไม่มีบัญชี ให้เลือก “สมัครสมาชิก”')+'</p></div></div>';document.getElementById('auth-form').onsubmit=handleAuthSubmit
-  }
-
-// handleAuthSubmit: จัดการสมัครสมาชิกและ Login พร้อมตรวจ role
-async function handleAuthSubmit(event) {
-    event.preventDefault();var form=event.currentTarget;var values=Object.fromEntries(new FormData(form).entries());var button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent='กำลังตรวจสอบ...';try {
-      if(AUTH_STATE.mode==='signup') {
-        var signUp=await window.fishgrowSupabase.auth.signUp({email:values.email,password:values.password,options:{data:{full_name:values.full_name||'',phone:values.phone||''}}});if(signUp.error)throw signUp.error;if(!signUp.data.session) {
-          renderAuth('สมัครสมาชิกสำเร็จ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');return
-        }
-        await bootstrapAuth();return
-      }
-      var signIn=await window.fishgrowSupabase.auth.signInWithPassword({email:values.email,password:values.password});if(signIn.error)throw signIn.error;await hydrateProfile(signIn.data.user);var isAdmin=AUTH_STATE.profile.role==='admin';if(AUTH_STATE.mode==='admin-login'&&!isAdmin) {
-        await window.fishgrowSupabase.auth.signOut();currentUser=null;AUTH_STATE.profile=null;throw new Error('บัญชีนี้ไม่มีสิทธิ์ Admin')
-      }
-      if(AUTH_STATE.mode==='user-login'&&isAdmin) {
-        await window.fishgrowSupabase.auth.signOut();currentUser=null;AUTH_STATE.profile=null;throw new Error('บัญชีนี้เป็น Admin กรุณาใช้ Admin Login')
-      }
-      await finishLogin()
-    } catch(error) {
-      renderAuth('',error.message||'ไม่สามารถเข้าสู่ระบบได้')
-    }
-  }
-
-// finishLogin: เตรียมข้อมูลหลัง Login แยกตาม role
-async function finishLogin() {
-    remoteStateLoaded=false;USER_CART={};if(AUTH_STATE.profile.role==='admin') {
-      await loadRemoteState();await loadAdminStoreProducts();await loadAdminBusinessData();await loadAdminWebOrders();await loadAdminStoreStock();S.page=S.page.indexOf('user-')===0?'dashboard':S.page
-    } else {
-      S.page='user';await loadStorefront()
-    }
-    render()
-  }
-
-// bootstrapAuth: ตรวจ session ปัจจุบันและเริ่มระบบ
-async function bootstrapAuth() {
-    if(!window.fishgrowSupabase) {
-      renderAuth('','ไม่พบการเชื่อมต่อ Supabase');return
-    }
-    var result=await window.fishgrowSupabase.auth.getUser();if(result.error||!result.data.user) {
-      currentUser=null;AUTH_STATE.profile=null;remoteStateLoaded=false;renderAuth();return
-    }
-    try {
-      await hydrateProfile(result.data.user);await finishLogin()
-    } catch(error) {
-      await window.fishgrowSupabase.auth.signOut();currentUser=null;AUTH_STATE.profile=null;renderAuth('',error.message||'ไม่สามารถโหลดโปรไฟล์ได้')
-    }
-  }
-
-// signOutUser: ออกจากระบบผ่าน Supabase Auth
-async function signOutUser() {
-    await window.fishgrowSupabase.auth.signOut()
-  }
-
-// updateProfile: บันทึกข้อมูล profile ของ User
-async function updateProfile() {
-    var fullName=document.getElementById('profile-name').value.trim(),phone=document.getElementById('profile-phone').value.trim();if(!fullName) {
-      toast('กรุณาระบุชื่อ-นามสกุล');return
-    }
-    try {
-      var result=await window.fishgrowSupabase.from('profiles').update({full_name:fullName,phone:phone}).eq('id',currentUser.id).select('id,full_name,email,phone,role').single();if(result.error)throw result.error;AUTH_STATE.profile=result.data;render();toast('อัปเดตโปรไฟล์แล้ว')
-    } catch(error) {
-      toast('บันทึกโปรไฟล์ไม่สำเร็จ: '+(error.message||'กรุณาลองใหม่'))
-    }
-  }
-  async function loadStorefront() {
-    var p=await window.fishgrowSupabase.from('store_products').select('product_id,sku,name,stock,price,image_url,is_available').eq('is_available',true).order('name');if(p.error)throw p.error;USER_PRODUCTS=p.data||[];var o=await window.fishgrowSupabase.from('store_orders').select('id,customer_name,phone,delivery_address,note,status,total_amount,items,created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false});if(o.error)throw o.error;USER_ORDERS=o.data||[]
-  }
-
 // loadAdminWebOrders: โหลดคำสั่งซื้อออนไลน์สำหรับ Admin
 async function loadAdminWebOrders() {
     var r=await window.fishgrowSupabase.from('store_orders').select('id,customer_name,status,total_amount,created_at,items,payment_status,payment_method,payment_proof_path,tracking_number').order('created_at',{ascending:false}).limit(100);if(r.error) {

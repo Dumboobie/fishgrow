@@ -698,3 +698,6 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
 .fg-tool-band .fg-section-head h2{font-size:clamp(22px,2.2vw,32px);line-height:1.15;white-space:nowrap;letter-spacing:-.6px;}
 @media(max-width:900px){.fg-tool-band .fg-section-head h2{font-size:26px;}}
 @media(max-width:720px){.fg-tool-band .fg-section-head h2{font-size:22px;white-space:normal;}}
+
+/* Center the How to Feed heading */
+.fg-steps>h2{text-align:center;}

@@ -723,3 +723,11 @@ body,.fg-public,.fg-admin-app,.fg-admin-app button,.fg-admin-app input,.fg-admin
 
 /* Global font lock: IBM Plex Sans Thai for every UI element */
 html,body,*{font-family:'IBM Plex Sans Thai',Arial,sans-serif !important;}
+
+
+/* Basket GIF icons */
+.fg-cart-icon{width:24px;height:24px;display:inline-block;object-fit:contain;vertical-align:-7px;margin-right:5px}
+.fg-cart-action-icon{width:22px;height:22px;display:block;object-fit:contain;pointer-events:none}
+.fg-product-actions .fg-btn:has(.fg-cart-action-icon),.fg-full-btn:has(.fg-cart-action-icon){min-width:48px;padding:10px 14px}
+.fg-cart-admin-icon{width:20px;height:20px;display:inline-block;object-fit:contain;vertical-align:-5px;margin-right:6px}
+.fg-admin-sidebar .nav button .fg-cart-admin-icon{filter:none}

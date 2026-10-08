@@ -774,6 +774,8 @@
   }
 
   async function render() {
+    const currentHash = location.hash.slice(1) || 'home';
+    state.page = currentHash.startsWith('product/') ? 'products' : currentHash.startsWith('knowledge/') ? 'knowledge' : currentHash;
     app.innerHTML = header() + await page() + footer();
     setupHeroVideo();
     window.scrollTo({ top: 0, behavior: 'instant' });

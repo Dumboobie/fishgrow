@@ -102,12 +102,9 @@
       return;
     }
 
-    try {
-      const authResult = await supabase.auth.getUser();
-      if (!authResult.error) state.user = authResult.data.user || null;
-    } catch (error) {
-      console.warn('FISHGROW: auth check failed, continuing as public visitor.', error);
-    }
+    // Public catalog must load without requiring an authenticated session.
+    // Authentication is checked only when the user performs protected actions
+    // such as checkout, account, or order tracking.
 
     // Load each public resource independently so a non-critical query
     // cannot prevent the product catalog from appearing on the Home page.

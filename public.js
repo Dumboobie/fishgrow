@@ -195,7 +195,7 @@
       navItem('about', 'เกี่ยวกับเรา') +
       '</nav>' +
       '<div class="fg-nav-actions">' +
-      '<a class="fg-cart-link" href="#cart">🛒 ตะกร้า <b>' + cartCount() + '</b></a>' +
+      '<a class="fg-cart-link" href="#cart"><img class="fg-cart-icon" src="basket1.gif" alt="" aria-hidden="true">ตะกร้า <b>' + cartCount() + '</b></a>' +
       accountAction +
       '<button class="fg-menu-btn" type="button" aria-label="เปิดเมนู">☰</button>' +
       '</div></div></header>';
@@ -226,8 +226,8 @@
       '<div class="fg-product-meta"><span>คงเหลือ ' + money(p.stock) + ' kg</span><strong>฿' + money(p.price) + '<small>/kg</small></strong></div>' +
       (compact ? '' : '<div class="fg-product-actions"><a class="fg-btn fg-btn-light" href="#product/' + p.product_id + '">ดูรายละเอียด</a>' +
         '<button class="fg-btn fg-btn-light" data-compare="' + p.product_id + '">' + (state.compare.includes(Number(p.product_id)) ? '✓ เทียบแล้ว' : '＋ เปรียบเทียบ') + '</button>' +
-        '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button></div>') +
-      (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button>' : '') +
+        '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button></div>') +
+      (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '"><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button>' : '') +
       (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' kg</div>' : '') +
       '</div></article>';
   }

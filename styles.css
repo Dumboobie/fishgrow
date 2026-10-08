@@ -704,3 +704,7 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
 
 /* Storage tip SVG icons */
 .fg-storage-icon{width:24px;height:24px;display:inline-block;vertical-align:-6px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Slightly shift homepage hero copy to the right */
+.fg-hero-copy{transform:translateX(18px);}
+@media(max-width:720px){.fg-hero-copy{transform:translateX(8px);}}

@@ -786,6 +786,29 @@
   document.addEventListener('submit', handleSubmit);
   window.addEventListener('hashchange', render);
 
+  // syncPublicAuth: ให้หน้าเว็บไซต์หลักอ่าน Session ปัจจุบันจาก Supabase
+  // เพื่อให้ Login แล้วแสดงบัญชี/Logout และ Logout แล้วกลับเป็น Guest ทันที
+  async function syncPublicAuth() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.auth.getUser();
+      state.user = data?.user || null;
+    } catch (error) {
+      console.warn('FISHGROW: unable to sync auth session:', error);
+      state.user = null;
+    }
+  }
+
+  // ติดตามการเปลี่ยน Session จาก Login, Logout และ Token Refresh
+  if (supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      state.user = session?.user || null;
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        render();
+      }
+    });
+  }
+
   (async function init() {
     const params = new URLSearchParams(location.search);
     if (params.get('mode') === 'account' || params.get('mode') === 'admin') {
@@ -794,6 +817,7 @@
       document.body.appendChild(script);
       return;
     }
+    await syncPublicAuth();
     await loadProducts();
     render();
   })();

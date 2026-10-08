@@ -651,14 +651,14 @@
       const id = Number(compareButton.dataset.compare);
       state.compare = state.compare.includes(id) ? state.compare.filter(x => x !== id) : (state.compare.length < 3 ? [...state.compare, id] : state.compare);
       saveCompare();
-      render();
+      render({ resetScroll: false });
       return;
     }
 
     if (e.target.closest('[data-clear-compare]')) {
       state.compare = [];
       saveCompare();
-      render();
+      render({ resetScroll: false });
       return;
     }
 

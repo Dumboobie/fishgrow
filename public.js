@@ -669,7 +669,7 @@
       if (p && Number(state.cart[id] || 0) < Number(p.stock)) {
         state.cart[id] = Number(state.cart[id] || 0) + 1;
         saveCart();
-        render();
+        render({ resetScroll: false });
       }
       return;
     }
@@ -695,7 +695,7 @@
       if (next <= 0) delete state.cart[id];
       else if (p && next <= Number(p.stock)) state.cart[id] = next;
       saveCart();
-      render();
+      render({ resetScroll: false });
       return;
     }
 
@@ -703,7 +703,7 @@
     if (remove) {
       delete state.cart[remove.dataset.cartRemove];
       saveCart();
-      render();
+      render({ resetScroll: false });
       return;
     }
 
@@ -770,12 +770,12 @@
     }
   }
 
-  async function render() {
+  async function render({ resetScroll = true } = {}) {
     const currentHash = location.hash.slice(1) || 'home';
     state.page = currentHash.startsWith('product/') ? 'products' : currentHash.startsWith('knowledge/') ? 'knowledge' : currentHash;
     app.innerHTML = header() + await page() + footer();
     setupHeroVideo();
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (resetScroll) window.scrollTo({ top: 0, behavior: 'instant' });
     const heroVideo = document.querySelector('.fg-hero-bg-video');
     if (heroVideo && heroVideo.paused) {
       heroVideo.play().catch(() => { });

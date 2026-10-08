@@ -657,16 +657,22 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:'IBM Plex Sans T
 }
 
 
-/* Home page story video between Why FishGrow and Products */
+/* Home page story video: full-width horizontal banner */
 .fg-home-story-video{
-  padding-top:0;
-  padding-bottom:0;
+  padding:0;
+  overflow:hidden;
+}
+.fg-home-story-video .fg-container{
+  width:100%;
+  max-width:none;
+  margin:0;
 }
 .fg-home-story-video-frame{
   width:100%;
-  aspect-ratio:16/6;
+  height:clamp(260px,32vw,520px);
+  min-height:260px;
   overflow:hidden;
-  border-radius:24px;
+  border-radius:0;
   background:#111;
 }
 .fg-home-story-video-frame video{
@@ -678,8 +684,8 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:'IBM Plex Sans T
 }
 @media(max-width:700px){
   .fg-home-story-video-frame{
-    aspect-ratio:16/9;
-    border-radius:18px;
+    height:240px;
+    min-height:240px;
   }
 }
 

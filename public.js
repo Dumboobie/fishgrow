@@ -109,31 +109,38 @@
       console.warn('FISHGROW: auth check failed, continuing as public visitor.', error);
     }
 
-    // Load each public resource independently so a non-critical query
-    // cannot prevent the product catalog from appearing on the Home page.
+    // Load the catalog with only the fields required by the public storefront.
+    // Optional product-detail fields are loaded separately so one missing/stale
+    // column in the schema cache cannot make every product disappear.
     const productResult = await supabase
       .from('store_products')
-      .select('product_id,sku,name,stock,price,is_available,image_url,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note')
+      .select('product_id,sku,name,stock,price,is_available,image_url')
       .eq('is_available', true)
       .order('product_id');
 
     if (productResult.error) {
-      console.error('FISHGROW: failed to load products:', productResult.error);
-      // Retry with only the fields required to render product cards.
-      const fallback = await supabase
-        .from('store_products')
-        .select('product_id,sku,name,stock,price,is_available,image_url')
-        .eq('is_available', true)
-        .order('product_id');
-
-      if (!fallback.error) {
-        state.products = fallback.data || [];
-      } else {
-        console.error('FISHGROW: product fallback also failed:', fallback.error);
-        state.products = [];
-      }
+      console.error('FISHGROW: failed to load product catalog:', productResult.error);
+      state.products = [];
     } else {
       state.products = productResult.data || [];
+    }
+
+    // Enrich products with optional detail fields when available.
+    if (state.products.length) {
+      const detailResult = await supabase
+        .from('store_products')
+        .select('product_id,updated_at,fish_types,stages,goals,pellet_size,protein_pct,description,ingredients,usage_note,storage_note')
+        .in('product_id', state.products.map((product) => product.product_id));
+
+      if (!detailResult.error && detailResult.data) {
+        const detailsById = new Map(detailResult.data.map((product) => [String(product.product_id), product]));
+        state.products = state.products.map((product) => ({
+          ...product,
+          ...(detailsById.get(String(product.product_id)) || {})
+        }));
+      } else if (detailResult.error) {
+        console.warn('FISHGROW: optional product details could not be loaded:', detailResult.error);
+      }
     }
 
     const [settingsResult, articlesResult, rulesResult] = await Promise.allSettled([

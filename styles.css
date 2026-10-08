@@ -703,4 +703,4 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:Arial,"Noto Sans
 .fg-steps>h2{text-align:center;}
 
 /* Storage tip SVG icons */
-.fg-storage-icon{width:20px;height:20px;display:inline-block;vertical-align:-4px;margin-right:7px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.fg-storage-icon{width:24px;height:24px;display:inline-block;vertical-align:-6px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}

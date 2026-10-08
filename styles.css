@@ -669,8 +669,8 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:'IBM Plex Sans T
 }
 .fg-home-story-video-frame{
   width:100%;
-  height:clamp(260px,32vw,520px);
-  min-height:260px;
+  height:clamp(360px,42vw,680px);
+  min-height:360px;
   overflow:hidden;
   border-radius:0;
   background:#111;
@@ -684,8 +684,8 @@ body.fg-public{background:#fff;color:var(--fg-navy);font-family:'IBM Plex Sans T
 }
 @media(max-width:700px){
   .fg-home-story-video-frame{
-    height:240px;
-    min-height:240px;
+    height:320px;
+    min-height:320px;
   }
 }
 

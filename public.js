@@ -247,7 +247,7 @@
       '<div class="fg-container fg-hero-inner">' +
       '<div class="fg-hero-content">' +
       '' +
-      '<h1>เปลี่ยนปลาหมอคางดำ<br><span>ให้เป็นคุณค่าใหม่</span></h1>' +
+      '<h1>Transforming Blackchin Tilapia<br><span>into New Value</span></h1>' +
       '<p>อาหารปลาคุณภาพจากปลาหมอคางดำและวัตถุดิบท้องถิ่น เพื่อสนับสนุนเกษตรกรและการใช้ทรัพยากรอย่างยั่งยืน</p>' +
       '<div class="fg-hero-actions">' +
       '<a class="fg-btn fg-btn-green" href="#recommend">เลือกอาหารที่เหมาะกับฟาร์ม</a>' +

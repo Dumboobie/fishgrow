@@ -726,8 +726,8 @@ html,body,*{font-family:'IBM Plex Sans Thai',Arial,sans-serif !important;}
 
 
 /* Basket GIF icons */
-.fg-cart-icon{width:24px;height:24px;display:inline-block;object-fit:contain;vertical-align:-7px;margin-right:5px}
-.fg-cart-action-icon{width:22px;height:22px;display:block;object-fit:contain;pointer-events:none}
+.fg-cart-icon{width:32px;height:32px;display:inline-block;object-fit:contain;vertical-align:-10px;margin-right:6px}
+.fg-cart-action-icon{width:30px;height:30px;display:block;object-fit:contain;pointer-events:none}
 .fg-product-actions .fg-btn:has(.fg-cart-action-icon),.fg-full-btn:has(.fg-cart-action-icon){min-width:48px;padding:10px 14px}
-.fg-cart-admin-icon{width:20px;height:20px;display:inline-block;object-fit:contain;vertical-align:-5px;margin-right:6px}
+.fg-cart-admin-icon{width:28px;height:28px;display:inline-block;object-fit:contain;vertical-align:-8px;margin-right:7px}
 .fg-admin-sidebar .nav button .fg-cart-admin-icon{filter:none}

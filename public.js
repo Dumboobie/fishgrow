@@ -323,7 +323,7 @@
       '<div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div>' +
       '</div>' +
       '<div class="fg-detail-buy">' +
-      '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '>🛒 เพิ่มลงตะกร้า</button>' +
+      '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"> เพิ่มลงตะกร้า</button>' +
       '<a class="fg-btn fg-btn-light" href="#recommend"> ให้ระบบช่วยเลือก</a>' +
       '</div>' +
       '</div>' +

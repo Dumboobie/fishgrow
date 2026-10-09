@@ -1233,3 +1233,8 @@ html,body,*{font-family:'IBM Plex Sans Thai',Arial,sans-serif !important;}
     grid-template-columns: 1fr 52px;
   }
 }
+
+/* Icon-only add-to-cart button on product detail page */
+.fg-detail-buy button:has(.fg-cart-action-icon){background:#4d632a;border:2px solid #fff;padding:8px;min-width:0;width:max-content;min-height:0;line-height:0;border-radius:10px;}
+.fg-detail-buy button:has(.fg-cart-action-icon):hover{background:#3e5220;border-color:#fff;}
+.fg-detail-buy .fg-cart-action-icon{width:58px;height:58px;}

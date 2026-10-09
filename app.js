@@ -552,22 +552,26 @@ function pendingOrderValue() {
   }, 0)
 }
 function cartCount() {
-  return Object.keys(USER_CART).reduce(function (n, id) {
-    return n + USER_CART[id]
-  }, 0)
+  return Object.keys(USER_CART).reduce(function (n, id) { return n + USER_CART[id] }, 0)
 }
-
-// adjustCart: เพิ่ม/ลดสินค้าในตะกร้าโดยไม่เกินสต็อก
+function productBagSize(product) {
+  var match = String(product && product.name || '').match(/(\d+(?:\.\d+)?)\s*kg\b/i);
+  return match ? Number(match[1]) : 1;
+}
 function adjustCart(id, delta) {
-  var p = USER_PRODUCTS.find(function (x) {
-    return String(x.product_id) === String(id)
-  }); if (!p) return; var next = (USER_CART[id] || 0) + delta; if (next <= 0) delete USER_CART[id]; else if (next <= Number(p.stock)) USER_CART[id] = next; render()
+  var p = USER_PRODUCTS.find(function (x) { return String(x.product_id) === String(id) });
+  if (!p) return;
+  var next = (USER_CART[id] || 0) + delta, size = productBagSize(p), maxBags = Math.floor((Number(p.stock) || 0) / size);
+  if (next <= 0) delete USER_CART[id]; else if (next <= maxBags) USER_CART[id] = next;
+  render()
 }
 
-// submitStoreOrder: ส่งคำสั่งซื้อของ User ไปยัง Supabase
+// submitStoreOrder:// submitStoreOrder: ส่งคำสั่งซื้อของ User ไปยัง Supabase
 async function submitStoreOrder(event) {
   event.preventDefault(); var form = event.currentTarget, button = form.querySelector('button[type=submit]'), values = Object.fromEntries(new FormData(form).entries()), items = Object.keys(USER_CART).map(function (id) {
-    return { product_id: Number(id), quantity: USER_CART[id] }
+    var product = USER_PRODUCTS.find(function (p) { return String(p.product_id) === String(id) });
+    var bags = USER_CART[id], size = productBagSize(product);
+    return { product_id: Number(id), quantity: bags * size, package_count: bags, package_size_kg: size }
   }); if (!items.length) {
     toast('กรุณาเลือกสินค้า'); return
   }
@@ -589,19 +593,21 @@ function userShop() {
   var cartHtml = Object.keys(USER_CART).length ? Object.keys(USER_CART).map(function (id) {
     var p = USER_PRODUCTS.find(function (x) {
       return String(x.product_id) === String(id)
-    }); return p ? '<div class="cart-line"><span>' + esc(p.name) + ' × ' + USER_CART[id] + ' kg</span><b>฿' + money(p.price * USER_CART[id]) + '</b></div>' : ''
+    }); var size = productBagSize(p), bags = USER_CART[id]; return p ? '<div class="cart-line"><span>' + esc(p.name) + ' × ' + bags + ' ถุง (' + money(size) + ' kg/ถุง)</span><b>฿' + money(p.price * size * bags) + '</b></div>' : ''
   }).join('') : '<p class="muted">ยังไม่มีสินค้าในตะกร้า</p>'; var total = Object.keys(USER_CART).reduce(function (n, id) {
     var p = USER_PRODUCTS.find(function (x) {
       return String(x.product_id) === String(id)
-    }); return n + (p ? p.price * USER_CART[id] : 0)
+    }); return n + (p ? p.price * productBagSize(p) * USER_CART[id] : 0)
   }, 0); return '<div class="page-head"><div><h2>เลือกซื้อสินค้า</h2><p>อาหารปลากะพงขาว FISHGROW สั่งซื้อได้จากบัญชีของคุณ</p></div><span class="badge">' + cartCount() + ' รายการในตะกร้า</span></div><div class="store-grid">' + (USER_PRODUCTS.length ? USER_PRODUCTS.map(function (p) {
-    var qty = USER_CART[p.product_id] || 0, inStock = Number(p.stock) > 0; return '<article class="card product-card"><div class="product-mark">' + (safeImageUrl(p.image_url) ? '<img src="' + esc(safeImageUrl(p.image_url)) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'"><span style="display:none">รูปภาพไม่พร้อม</span>' : '🐟') + '</div><span class="badge ' + (inStock ? '' : 'warn') + '">' + (inStock ? 'พร้อมจำหน่าย' : 'สินค้าหมด') + '</span><h3>' + esc(p.name) + '</h3><p class="muted">รหัส ' + esc(p.sku) + '</p><div class="product-price">฿' + money(p.price) + ' <small>/ kg</small></div><div class="product-buy"><button class="btn light" onclick="adjustCart(' + p.product_id + ',-1)" ' + (!qty ? 'disabled' : '') + '>−</button><b>' + qty + '</b><button class="btn light" onclick="adjustCart(' + p.product_id + ',1)" ' + (qty >= p.stock ? 'disabled' : '') + '>+</button><button type="button" class="btn green" onclick="adjustCart(' + p.product_id + ',1)" ' + (qty >= p.stock ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button></div></article>'
+    var qty = USER_CART[p.product_id] || 0, size = productBagSize(p), maxBags = Math.floor((Number(p.stock) || 0) / size), inStock = maxBags > 0; return '<article class="card product-card"><div class="product-mark">' + (safeImageUrl(p.image_url) ? '<img src="' + esc(safeImageUrl(p.image_url)) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'"><span style="display:none">รูปภาพไม่พร้อม</span>' : '🐟') + '</div><span class="badge ' + (inStock ? '' : 'warn') + '">' + (inStock ? 'พร้อมจำหน่าย' : 'สินค้าหมด') + '</span><h3>' + esc(p.name) + '</h3><p class="muted">รหัส ' + esc(p.sku) + '</p><div class="product-price">฿' + money(p.price * size) + ' <small>/ ถุง (' + money(size) + ' kg)</small></div><div class="product-buy"><button class="btn light" onclick="adjustCart(' + p.product_id + ',-1)" ' + (!qty ? 'disabled' : '') + '>−</button><b>' + qty + ' ถุง</b><button class="btn light" onclick="adjustCart(' + p.product_id + ',1)" ' + (qty >= maxBags ? 'disabled' : '') + '>+</button><button type="button" class="btn green" onclick="adjustCart(' + p.product_id + ',1)" ' + (qty >= maxBags ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button></div></article>'
   }).join('') : '<div class="card">ยังไม่มีสินค้าเปิดขาย กรุณาติดต่อผู้ดูแล</div>') + '</div><div class="card checkout-card"><div class="section-title"><h3>ตะกร้าสินค้า</h3><b>รวม ฿' + money(total) + '</b></div>' + cartHtml + (cartCount() ? '<form class="checkout-form" onsubmit="submitStoreOrder(event)"><div class="form-grid"><div class="field"><label>ชื่อผู้รับ</label><input name="customer_name" value="' + esc(AUTH_STATE.profile.full_name) + '" required></div><div class="field"><label>เบอร์โทรศัพท์</label><input name="phone" value="' + esc(AUTH_STATE.profile.phone) + '" required></div><div class="field full"><label>ที่อยู่จัดส่ง</label><textarea name="delivery_address" rows="3" required></textarea></div><div class="field full"><label>หมายเหตุ</label><input name="note" placeholder="เช่น เวลาที่สะดวกให้จัดส่ง"></div></div><button class="btn green" type="submit">ยืนยันคำสั่งซื้อ</button></form>' : '') + '</div>'
 }
 function userOrders() {
   var rows = USER_ORDERS.map(function (o) {
     return '<article class="card order-card"><div class="section-title"><h3>คำสั่งซื้อ FGW-' + String(o.id).padStart(6, '0') + '</h3><span class="badge ' + orderStatusClass(o.status) + '">' + esc(o.status) + '</span></div><p class="muted">' + new Date(o.created_at).toLocaleString('th-TH') + '</p><div class="order-items">' + (o.items || []).map(function (i) {
-      return '<div class="cart-line"><span>' + esc(i.name) + ' × ' + i.quantity + ' kg</span><b>฿' + money(i.line_total) + '</b></div>'
+      var bags = Number(i.package_count), size = Number(i.package_size_kg);
+      var displayQty = bags > 0 ? bags + ' ถุง (' + money(size || (Number(i.quantity) / bags)) + ' kg/ถุง)' : i.quantity + ' kg';
+      return '<div class="cart-line"><span>' + esc(i.name) + ' × ' + displayQty + '</span><b>฿' + money(i.line_total) + '</b></div>'
     }).join('') + '</div><p><b>รวม ฿' + money(o.total_amount) + '</b></p><p class="muted">จัดส่ง: ' + esc(o.delivery_address) + '</p></article>'
   }).join(''); return '<div class="page-head"><div><h2>คำสั่งซื้อของฉัน</h2><p>ติดตามรายการสั่งซื้อที่ส่งให้ FISHGROW</p></div><button class="btn light" onclick="navigateUser(\'orders\')">↻ รีเฟรช</button></div><div class="grid">' + (rows || '<div class="card muted">ยังไม่มีคำสั่งซื้อ</div>') + '</div>'
 }

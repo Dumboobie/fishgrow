@@ -63,7 +63,7 @@ function dashboard() { var sales = recognizedIncome(), pending = pendingOrderVal
 // products: สร้างหน้าจัดการสินค้า ราคา SKU และสต็อก
 function products() {
   function bagSize(name) {
-    var match = String(name || '').match(/(\\d+(?:\\.\\d+)?)\\s*kg\\b/i);
+    var match = String(name || '').match(/(\d+(?:\.\d+)?)\s*kg\b/i);
     return match ? Number(match[1]) : 1;
   }
   function bagCount(stock, size) {

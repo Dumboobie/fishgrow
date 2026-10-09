@@ -34,7 +34,9 @@
   const saveCart = () => localStorage.setItem('fg_public_cart', JSON.stringify(state.cart));
   const saveCompare = () => localStorage.setItem('fg_public_compare', JSON.stringify(state.compare));
   const cartCount = () => Object.values(state.cart).reduce((sum, n) => sum + Number(n || 0), 0);
-  const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * Number(state.cart[p.product_id] || 0), 0);
+  const bagSize = p => { const m = String(p && p.name || '').match(/(\d+(?:\.\d+)?)\s*kg\b/i); return m ? Number(m[1]) : 1; };
+  const bagsInStock = p => Math.floor((Number(p && p.stock) || 0) / bagSize(p));
+  const cartTotal = () => state.products.reduce((sum, p) => sum + Number(p.price || 0) * bagSize(p) * Number(state.cart[p.product_id] || 0), 0);
 
   // FISHGROW process gallery uses the real repository assets below.
   // Keep these paths local so Vercel serves the exact files shipped with the site.
@@ -223,12 +225,12 @@
       '<div class="fg-product-body"><div class="fg-chip">' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</div>' +
       '<h3><a href="#product/' + p.product_id + '">' + esc(p.name) + '</a></h3>' +
       '<p class="fg-muted">SKU ' + esc(p.sku) + '</p>' +
-      '<div class="fg-product-meta"><span>คงเหลือ ' + money(p.stock) + ' kg</span><strong>฿' + money(p.price) + '<small>/kg</small></strong></div>' +
+      '<div class="fg-product-meta"><span>คงเหลือ ' + money(bagsInStock(p)) + ' ถุง</span><strong>฿' + money(p.price * bagSize(p)) + '<small>/ถุง (' + money(bagSize(p)) + ' kg)</small></strong></div>' +
       (compact ? '' : '<div class="fg-product-actions"><a class="fg-btn fg-btn-light" href="#product/' + p.product_id + '">ดูรายละเอียด</a>' +
         '<button class="fg-btn fg-btn-light" data-compare="' + p.product_id + '">' + (state.compare.includes(Number(p.product_id)) ? '✓ เทียบแล้ว' : '＋ เปรียบเทียบ') + '</button>' +
-        '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (Number(p.stock) <= 0 ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button></div>') +
+        '<button class="fg-btn fg-btn-green" data-add="' + p.product_id + '" ' + (bagsInStock(p) <= 0 ? 'disabled' : '') + '><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button></div>') +
       (compact ? '<button class="fg-btn fg-btn-green fg-full-btn" data-add="' + p.product_id + '"><img class="fg-cart-action-icon" src="basket1.gif" alt="" aria-hidden="true"></button>' : '') +
-      (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' kg</div>' : '') +
+      (qty ? '<div class="fg-qty-note">ในตะกร้า ' + qty + ' ถุง</div>' : '') +
       '</div></article>';
   }
 
@@ -314,10 +316,10 @@
       '<span class="fg-kicker">AQUACULTURE FEED</span>' +
       '<h1>' + esc(p.name) + '</h1>' +
       '<p class="fg-lead">อาหารปลาคุณภาพสำหรับการเลี้ยงปลา โดยใช้ทรัพยากรและวัตถุดิบท้องถิ่นเป็นส่วนหนึ่งของแนวคิด FishGrow</p>' +
-      '<div class="fg-price">฿' + money(p.price) + '<small>/ kg</small></div>' +
+      '<div class="fg-price">฿' + money(p.price * bagSize(p)) + '<small>/ ถุง (' + money(bagSize(p)) + ' kg)</small></div>' +
       '<div class="fg-detail-facts">' +
       '<div><small>SKU</small><b>' + esc(p.sku) + '</b></div>' +
-      '<div><small>สต็อก</small><b>' + money(p.stock) + ' kg</b></div>' +
+      '<div><small>สต็อก</small><b>' + money(bagsInStock(p)) + ' ถุง</b></div>' +
       '<div><small>สถานะ</small><b>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</b></div>' +
       '</div>' +
       '<div class="fg-detail-buy">' +
@@ -346,7 +348,7 @@
     }
     return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">COMPARE</span><h1>เปรียบเทียบสินค้า</h1><p>เปรียบเทียบราคา สต็อก และข้อมูลพื้นฐานของสินค้า</p></div><div class="fg-compare-table"><table><thead><tr><th>ข้อมูล</th>' +
       selected.map(p => '<th><b>' + esc(p.name) + '</b><small>' + esc(p.sku) + '</small></th>').join('') +
-      '</tr></thead><tbody><tr><td>ราคา</td>' + selected.map(p => '<td>฿' + money(p.price) + '/kg</td>').join('') + '</tr><tr><td>สต็อก</td>' + selected.map(p => '<td>' + money(p.stock) + ' kg</td>').join('') + '</tr><tr><td>สถานะ</td>' + selected.map(p => '<td>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</td>').join('') + '</tr><tr><td>การสั่งซื้อ</td>' + selected.map(p => '<td><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></td>').join('') + '</tr></tbody></table></div><button class="fg-btn fg-btn-light" data-clear-compare>ล้างรายการเปรียบเทียบ</button></div></section>';
+      '</tr></thead><tbody><tr><td>ราคา</td>' + selected.map(p => '<td>฿' + money(p.price * bagSize(p)) + '/ถุง</td>').join('') + '</tr><tr><td>สต็อก</td>' + selected.map(p => '<td>' + money(bagsInStock(p)) + ' ถุง</td>').join('') + '</tr><tr><td>สถานะ</td>' + selected.map(p => '<td>' + (p.is_available ? 'พร้อมจำหน่าย' : 'ไม่พร้อมจำหน่าย') + '</td>').join('') + '</tr><tr><td>การสั่งซื้อ</td>' + selected.map(p => '<td><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></td>').join('') + '</tr></tbody></table></div><button class="fg-btn fg-btn-light" data-clear-compare>ล้างรายการเปรียบเทียบ</button></div></section>';
   }
 
   function recommend() {
@@ -358,7 +360,7 @@
     if (step === 5) {
       const matches = rules.map(rule => ({ rule, score: Number(rule.priority || 0) + (rule.fish_type === r.fish ? 40 : 0) + (rule.stage === r.stage ? 30 : 0) + (rule.goal === r.goal ? 20 : 0) + (rule.farm_size === r.farm ? 10 : 0) })).filter(x => x.rule.fish_type === r.fish).sort((a, b) => b.score - a.score);
       const match = matches[0], p = match ? state.products.find(x => Number(x.product_id) === Number(match.rule.product_id)) : null;
-      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon"></span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(labels[r.goal] || r.goal) + '</span><span>ฟาร์ม: ' + esc(labels[r.farm] || r.farm) + '</span></div>' + (match && match.rule.reason ? '<p class="fg-muted">' + esc(match.rule.reason) + '</p>' : '') + '</div>' + (p ? '<div class="fg-result-price">฿' + money(p.price) + '<small>/kg</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') + '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
+      return '<section class="fg-page"><div class="fg-container fg-wizard"><div class="fg-page-head"><span class="fg-kicker">SMART RECOMMENDATION</span><h1>อาหารที่เราแนะนำ</h1><p>ผลลัพธ์จากข้อมูลสินค้าและเงื่อนไขที่ตั้งไว้ในระบบ</p></div><div class="fg-result-card"><div><span class="fg-result-icon"></span><h2>' + (p ? esc(p.name) : 'ยังไม่มีสินค้าที่ตรงเงื่อนไข') + '</h2><p>เหมาะสำหรับ ' + esc(r.fish) + ' · ' + esc(r.stage) + '</p><div class="fg-result-tags"><span>เป้าหมาย: ' + esc(labels[r.goal] || r.goal) + '</span><span>ฟาร์ม: ' + esc(labels[r.farm] || r.farm) + '</span></div>' + (match && match.rule.reason ? '<p class="fg-muted">' + esc(match.rule.reason) + '</p>' : '') + '</div>' + (p ? '<div class="fg-result-price">฿' + money(p.price * bagSize(p)) + '<small>/ถุง (' + money(bagSize(p)) + ' kg)</small><button class="fg-btn fg-btn-green" data-add="' + p.product_id + '">เพิ่มลงตะกร้า</button></div>' : '') + '</div><div class="fg-recommend-actions"><button class="fg-btn fg-btn-light" data-reset-recommend>เริ่มใหม่</button><a class="fg-btn fg-btn-light" href="#products">ดูสินค้าทั้งหมด</a></div></div></section>';
     }
     const key = step === 1 ? 'fish_type' : step === 2 ? 'stage' : step === 3 ? 'goal' : 'farm_size', current = values(key);
     const uiKey = key === 'fish_type' ? 'fish' : key === 'farm_size' ? 'farm' : key;
@@ -445,7 +447,7 @@
     const lines = Object.keys(state.cart).map(id => {
       const p = state.products.find(x => String(x.product_id) === String(id));
       if (!p) return '';
-      return '<div class="fg-cart-line"><div><b>' + esc(p.name) + '</b><small>฿' + money(p.price) + '/kg</small></div><div class="fg-cart-qty"><button data-cart-delta="' + id + ':-1">−</button><b>' + state.cart[id] + '</b><button data-cart-delta="' + id + ':1">+</button></div><strong>฿' + money(p.price * state.cart[id]) + '</strong><button class="fg-remove" data-cart-remove="' + id + '">×</button></div>';
+      return '<div class="fg-cart-line"><div><b>' + esc(p.name) + '</b><small>฿' + money(p.price * bagSize(p)) + '/ถุง · ' + money(bagSize(p)) + ' kg/ถุง</small></div><div class="fg-cart-qty"><button data-cart-delta="' + id + ':-1">−</button><b>' + state.cart[id] + ' ถุง</b><button data-cart-delta="' + id + ':1">+</button></div><strong>฿' + money(p.price * bagSize(p) * state.cart[id]) + '</strong><button class="fg-remove" data-cart-remove="' + id + '">×</button></div>';
     }).join('');
     return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">SHOPPING CART</span><h1>ตะกร้าสินค้า</h1><p>ตรวจสอบสินค้าและจำนวนก่อนสั่งซื้อ</p></div>' +
       '<div class="fg-cart-layout"><div class="fg-cart-list">' + (lines || '<div class="fg-empty">ยังไม่มีสินค้าในตะกร้า <a href="#products">ไปเลือกสินค้า</a></div>') + '</div><aside class="fg-summary"><h2>สรุปคำสั่งซื้อ</h2><div><span>สินค้า</span><b>฿' + money(cartTotal()) + '</b></div><div><span>ค่าจัดส่ง</span><b>คำนวณตอนยืนยัน</b></div><hr><div class="total"><span>ยอดรวมสินค้า</span><b>฿' + money(cartTotal()) + '</b></div>' + (cartCount() ? '<a class="fg-btn fg-btn-green fg-full-btn" href="#checkout">ไปชำระเงิน / สั่งซื้อ</a>' : '<a class="fg-btn fg-btn-light fg-full-btn" href="#products">เลือกสินค้า</a>') + '</aside></div></div></section>';
@@ -469,7 +471,7 @@
 
     const lines = Object.keys(state.cart).map(id => {
       const p = state.products.find(x => String(x.product_id) === String(id));
-      return p ? '<div class="fg-checkout-line"><span>' + esc(p.name) + ' × ' + state.cart[id] + ' kg</span><b>฿' + money(p.price * state.cart[id]) + '</b></div>' : '';
+      return p ? '<div class="fg-checkout-line"><span>' + esc(p.name) + ' × ' + state.cart[id] + ' ถุง (' + money(bagSize(p)) + ' kg/ถุง)</span><b>฿' + money(p.price * bagSize(p) * state.cart[id]) + '</b></div>' : '';
     }).join('');
 
     return '<section class="fg-page"><div class="fg-container"><div class="fg-page-head"><span class="fg-kicker">CHECKOUT</span><h1>ยืนยันคำสั่งซื้อ</h1><p>กรอกข้อมูลจัดส่ง เลือกช่องทางชำระเงิน และส่งหลักฐานการชำระเงินถ้ามี</p></div>' +
@@ -532,7 +534,7 @@
     const values = Object.fromEntries(new FormData(form).entries());
     const items = Object.entries(state.cart).map(([id, quantity]) => ({
       product_id: Number(id),
-      quantity: Number(quantity)
+      quantity: Number(quantity) * bagSize(state.products.find(p => String(p.product_id) === String(id)))
     }));
 
     const { data: orderId, error } = await supabase.rpc('place_store_order', {
@@ -666,7 +668,7 @@
     if (add) {
       const id = add.dataset.add;
       const p = state.products.find(x => String(x.product_id) === id);
-      if (p && Number(state.cart[id] || 0) < Number(p.stock)) {
+      if (p && Number(state.cart[id] || 0) < bagsInStock(p)) {
         state.cart[id] = Number(state.cart[id] || 0) + 1;
         saveCart();
         render({ resetScroll: false });
@@ -693,7 +695,7 @@
       const p = state.products.find(x => String(x.product_id) === id);
       const next = Number(state.cart[id] || 0) + Number(d);
       if (next <= 0) delete state.cart[id];
-      else if (p && next <= Number(p.stock)) state.cart[id] = next;
+      else if (p && next <= bagsInStock(p)) state.cart[id] = next;
       saveCart();
       render({ resetScroll: false });
       return;
